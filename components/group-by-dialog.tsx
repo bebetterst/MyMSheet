@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -32,7 +32,10 @@ export function GroupByDialog({ open, onOpenChange }: GroupByDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>分组方式</DialogTitle>
+          <DialogTitle>任务分组</DialogTitle>
+          <DialogDescription className="sr-only">
+            选择任务列表的分组方式。
+          </DialogDescription>
         </DialogHeader>
         <div className="py-4">
           <RadioGroup value={localGroupBy} onValueChange={setLocalGroupBy}>

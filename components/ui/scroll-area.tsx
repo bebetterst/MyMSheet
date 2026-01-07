@@ -7,8 +7,12 @@ import { cn } from "@/lib/utils"
 
 const ScrollArea = React.forwardRef<
   React.ElementRef<typeof ScrollAreaPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root> & { orientation?: "vertical" | "horizontal" | "both" }
->(({ className, children, orientation = "vertical", ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root> & { 
+    orientation?: "vertical" | "horizontal" | "both"
+    viewportRef?: React.Ref<HTMLDivElement>
+    onScroll?: React.UIEventHandler<HTMLDivElement>
+  }
+>(({ className, children, orientation = "vertical", viewportRef, onScroll, ...props }, ref) => (
   <ScrollAreaPrimitive.Root
     ref={ref}
     className={cn("relative overflow-hidden", className)}
@@ -16,6 +20,8 @@ const ScrollArea = React.forwardRef<
     style={{ display: "flex", flexDirection: "column", height: "100%", ...props.style }}
   >
     <ScrollAreaPrimitive.Viewport
+      ref={viewportRef}
+      onScroll={onScroll}
       className="h-full w-full rounded-[inherit]"
       style={{ position: "relative", height: "100%" }}
     >
@@ -23,7 +29,7 @@ const ScrollArea = React.forwardRef<
     </ScrollAreaPrimitive.Viewport>
     {orientation === "vertical" || orientation === "both" ? (
       <ScrollAreaPrimitive.Scrollbar
-        className="flex touch-none select-none transition-colors h-full w-2.5 border-l border-l-transparent p-[1px] data-[orientation=vertical]:w-2.5 data-[orientation=horizontal]:flex-col data-[orientation=horizontal]:h-2.5"
+        className="flex touch-none select-none transition-colors h-full w-2.5 border-l border-l-transparent p-[1px] data-[orientation=vertical]:w-2.5 data-[orientation=horizontal]:flex-col data-[orientation=horizontal]:h-2.5 z-50"
         orientation="vertical"
       >
         <ScrollAreaPrimitive.Thumb className="relative flex-1 rounded-full bg-gray-300 hover:bg-gray-400" />
@@ -31,7 +37,7 @@ const ScrollArea = React.forwardRef<
     ) : null}
     {orientation === "horizontal" || orientation === "both" ? (
       <ScrollAreaPrimitive.Scrollbar
-        className="flex touch-none select-none transition-colors h-2.5 flex-col border-t border-t-transparent p-[1px] data-[orientation=vertical]:w-2.5 data-[orientation=horizontal]:flex-col data-[orientation=horizontal]:h-2.5"
+        className="flex touch-none select-none transition-colors h-2.5 flex-col border-t border-t-transparent p-[1px] data-[orientation=vertical]:w-2.5 data-[orientation=horizontal]:flex-col data-[orientation=horizontal]:h-2.5 z-50"
         orientation="horizontal"
       >
         <ScrollAreaPrimitive.Thumb className="relative flex-1 rounded-full bg-gray-300 hover:bg-gray-400" />

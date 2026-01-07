@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -30,7 +30,9 @@ export function AddTaskDialog({ open, onOpenChange, onAddTask }: AddTaskDialogPr
   // 从所有任务中提取唯一的用户
   const users = Array.from(
     new Map(
-      data.priorityGroups.flatMap((group) => group.tasks).map((task) => [task.assignee.id, task.assignee]),
+      data.priorityGroups
+        .flatMap((group) => group.tasks)
+        .flatMap((task) => (task.assignee ? [[task.assignee.id, task.assignee] as const] : [])),
     ).values(),
   )
 
@@ -55,6 +57,9 @@ export function AddTaskDialog({ open, onOpenChange, onAddTask }: AddTaskDialogPr
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>添加新任务</DialogTitle>
+          <DialogDescription className="sr-only">
+            填写以下信息以创建一个新任务。
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">

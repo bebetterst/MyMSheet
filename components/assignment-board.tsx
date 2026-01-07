@@ -99,7 +99,7 @@ export function AssignmentBoard({ data, onTaskClick, onAddUser }: AssignmentBoar
   // 将任务按用户分组 - 使用useCallback优化性能
   const getTasksByUser = useCallback(() => {
     return users.reduce<Record<string, Task[]>>((acc, user) => {
-      acc[user.id] = data.priorityGroups.flatMap((group) => group.tasks.filter((task) => task.assignee.id === user.id))
+      acc[user.id] = data.priorityGroups.flatMap((group) => group.tasks.filter((task) => task.assignee?.id === user.id))
       return acc
     }, {})
   }, [users, data.priorityGroups])
@@ -170,6 +170,7 @@ export function AssignmentBoard({ data, onTaskClick, onAddUser }: AssignmentBoar
     // 创建完整的任务对象
     const taskToAdd: Task = {
       id: `task-${Date.now()}`,
+      fields: {},
       description: newTask.description || "",
       summary: newTask.summary || "",
       assignee: assignee,

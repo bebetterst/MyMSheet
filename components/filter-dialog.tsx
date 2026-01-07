@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -29,17 +29,21 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
   // 从所有任务中提取唯一的用户
   const users = Array.from(
     new Map(
-      data.priorityGroups.flatMap((group) => group.tasks).map((task) => [task.assignee.id, task.assignee]),
+      data.priorityGroups
+        .flatMap((group) => group.tasks)
+        .flatMap((task) => (task.assignee ? [[task.assignee.id, task.assignee] as const] : [])),
     ).values(),
   )
 
   // 从所有任务中提取唯一的状态
-  const statuses = Array.from(new Set(data.priorityGroups.flatMap((group) => group.tasks).map((task) => task.status)))
+  const statuses = Array.from(
+    new Set(data.priorityGroups.flatMap((group) => group.tasks).map((task) => task.status)),
+  ).filter((s): s is string => !!s)
 
   // 从所有任务中提取唯一的优先级
   const priorities = Array.from(
     new Set(data.priorityGroups.flatMap((group) => group.tasks).map((task) => task.priority)),
-  )
+  ).filter((p): p is string => !!p)
 
   const handleApplyFilter = () => {
     // 设置筛选为激活状态
@@ -75,6 +79,9 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>筛选任务</DialogTitle>
+          <DialogDescription className="sr-only">
+            设置条件以筛选显示的任务列表。
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">

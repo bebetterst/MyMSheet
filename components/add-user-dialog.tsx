@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -66,6 +66,9 @@ export function AddUserDialog({ open, onOpenChange, onAddUser }: AddUserDialogPr
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>添加新用户</DialogTitle>
+          <DialogDescription className="sr-only">
+            填写用户信息以添加到系统。
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">

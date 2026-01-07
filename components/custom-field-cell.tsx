@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { ImageIcon } from "lucide-react"
+import { Slider } from "@/components/ui/slider"
+import { ImageIcon, Star } from "lucide-react"
 import type { FieldType, CustomFieldValue } from "@/lib/types"
 
 interface CustomFieldCellProps {
@@ -67,7 +68,7 @@ export function CustomFieldCell({
     // 渲染编辑模式
     const renderEditMode = () => {
         switch (fieldType) {
-            case "文本":
+            case "Text":
                 return (
                     <Input
                         value={editValue || ""}
@@ -78,7 +79,7 @@ export function CustomFieldCell({
                         className="h-8 py-1"
                     />
                 )
-            case "数值":
+            case "Number":
                 return (
                     <Input
                         type="number"
@@ -90,7 +91,8 @@ export function CustomFieldCell({
                         className="h-8 py-1"
                     />
                 )
-            case "标签":
+            case "Select":
+            case "Tag": 
                 return (
                     <Select
                         value={editValue || ""}
@@ -120,7 +122,7 @@ export function CustomFieldCell({
                         </SelectContent>
                     </Select>
                 )
-            case "单选":
+            case "Radio":
                 return (
                     <Select
                         value={editValue || ""}
@@ -142,7 +144,7 @@ export function CustomFieldCell({
                         </SelectContent>
                     </Select>
                 )
-            case "复选":
+            case "Checkbox":
                 return (
                     <div className="flex items-center space-x-2 py-1">
                         <Checkbox
@@ -156,7 +158,7 @@ export function CustomFieldCell({
                         <span>是</span>
                     </div>
                 )
-            case "富文本":
+            case "RichText":
                 return (
                     <Textarea
                         value={editValue || ""}
@@ -173,7 +175,7 @@ export function CustomFieldCell({
                         className="min-h-[80px] p-2"
                     />
                 )
-            case "图片":
+            case "Image":
                 return (
                     <div className="flex flex-col space-y-2">
                         <div className="flex items-center space-x-2">
@@ -202,6 +204,38 @@ export function CustomFieldCell({
                         )}
                     </div>
                 )
+            case "Progress":
+                return (
+                    <div className="flex items-center space-x-2 w-full px-2">
+                        <Slider
+                            value={[typeof editValue === 'number' ? editValue : 0]}
+                            max={100}
+                            step={1}
+                            onValueChange={(vals) => setEditValue(vals[0])}
+                            onValueCommit={() => handleSave()}
+                            className="w-full"
+                        />
+                        <span className="text-xs w-8 text-right">{editValue}%</span>
+                    </div>
+                )
+            case "Rating":
+                return (
+                    <div className="flex items-center space-x-1 p-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                                key={star}
+                                className={`h-5 w-5 cursor-pointer transition-colors ${
+                                    star <= (editValue || 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-300 hover:text-yellow-200"
+                                }`}
+                                onClick={() => {
+                                    setEditValue(star)
+                                    onSave(star)
+                                    setIsEditing(false)
+                                }}
+                            />
+                        ))}
+                    </div>
+                )
             default:
                 return (
                     <Input
@@ -221,10 +255,11 @@ export function CustomFieldCell({
         const displayValue = value?.value
 
         switch (fieldType) {
-            case "文本":
-            case "数值":
+            case "Text":
+            case "Number":
                 return <div className="truncate">{displayValue || "-"}</div>
-            case "标签":
+            case "Select":
+            case "Tag":
                 return displayValue ? (
                     <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-200">
                         {displayValue}
@@ -232,21 +267,21 @@ export function CustomFieldCell({
                 ) : (
                     "-"
                 )
-            case "单选":
+            case "Radio":
                 return <div className="truncate">{displayValue || "-"}</div>
-            case "复选":
+            case "Checkbox":
                 return (
                     <div className="flex justify-center">
                         <Checkbox checked={!!displayValue} disabled />
                     </div>
                 )
-            case "富文本":
+            case "RichText":
                 return (
                     <div className="truncate max-w-xs" title={displayValue}>
                         {displayValue || "-"}
                     </div>
                 )
-            case "图片":
+            case "Image":
                 return displayValue ? (
                     <div className="flex justify-center">
                         <img
@@ -261,6 +296,31 @@ export function CustomFieldCell({
                 ) : (
                     <div className="flex justify-center text-gray-400">
                         <ImageIcon className="h-4 w-4" />
+                    </div>
+                )
+            case "Progress":
+                 return (
+                    <div className="flex items-center space-x-2 w-full">
+                        <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div 
+                                className="h-full bg-blue-500 rounded-full" 
+                                style={{ width: `${displayValue || 0}%` }}
+                            />
+                        </div>
+                        <span className="text-xs text-gray-500 w-8 text-right">{displayValue || 0}%</span>
+                    </div>
+                 )
+            case "Rating":
+                return (
+                    <div className="flex space-x-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                                key={star}
+                                className={`h-3.5 w-3.5 ${
+                                    star <= (displayValue || 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
+                                }`}
+                            />
+                        ))}
                     </div>
                 )
             default:

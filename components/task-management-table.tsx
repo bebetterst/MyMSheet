@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import EditableCell from "@/components/editable-cell"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -16,7 +16,7 @@ import { AssignmentBoard } from "@/components/assignment-board"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { useToast } from "@/hooks/use-toast"
 import { useTaskStore } from "@/lib/task-store"
-import type { Task, FieldType } from "@/lib/types"
+import type { Task, FieldDefinition } from "@/lib/types"
 import { CSS } from "@dnd-kit/utilities"
 import { useSortable } from "@dnd-kit/sortable"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -51,7 +51,6 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
-  type DragStartEvent,
 } from "@dnd-kit/core"
 import { SortableContext, verticalListSortingStrategy, horizontalListSortingStrategy } from "@dnd-kit/sortable"
 
@@ -59,12 +58,11 @@ import { SortableContext, verticalListSortingStrategy, horizontalListSortingStra
 import { FilterDialog } from "@/components/filter-dialog"
 import { SortDialog } from "@/components/sort-dialog"
 import { GroupByDialog } from "@/components/group-by-dialog"
-import { FieldConfigDialog } from "@/components/field-config-dialog"
+import { FieldManagementDialog } from "@/components/field-management-dialog"
+import { ViewManagementDialog } from "@/components/view-management-dialog"
 import { AddTaskDialog } from "@/components/add-task-dialog"
 import { AddUserDialog } from "@/components/add-user-dialog"
 import { ImportTasksDialog } from "@/components/import-tasks-dialog"
-// 在 import 部分添加新组件
-import { AddFieldDialog } from "@/components/add-field-dialog"
 // 在 import 部分添加新组件
 import { CustomFieldCell } from "@/components/custom-field-cell"
 
@@ -77,6 +75,123 @@ const rowHeightMap: Record<RowHeight, string> = {
   中等: "py-2",
   高: "py-3",
   超高: "py-4",
+}
+
+// 辅助函数：处理列宽调整
+const handleColumnResizeStart = (
+    e: React.MouseEvent,
+    field: FieldDefinition,
+    onResize: (width: number) => void
+) => {
+  e.preventDefault()
+  e.stopPropagation()
+
+  // 设置拖拽状态
+  const startX = e.clientX
+  const startWidth = field.width
+
+  // 创建辅助线
+  const resizeLine = document.createElement("div")
+  resizeLine.className = "resize-line"
+  resizeLine.style.position = "fixed"
+  resizeLine.style.top = "0"
+  resizeLine.style.bottom = "0"
+  resizeLine.style.width = "2px"
+  resizeLine.style.backgroundColor = "#3b82f6"
+  resizeLine.style.zIndex = "9999"
+  resizeLine.style.left = `${e.clientX}px`
+  document.body.appendChild(resizeLine)
+
+  // 设置全局样式
+  document.body.style.cursor = "col-resize"
+  document.body.style.userSelect = "none"
+  document.body.classList.add("column-resizing")
+
+  // 找到所有相同字段ID的单元格
+  const allCells = document.querySelectorAll(`[data-field-id="${field.id}"]`) as NodeListOf<HTMLElement>
+
+  const handleMouseMove = (moveEvent: MouseEvent) => {
+    // 更新辅助线位置
+    resizeLine.style.left = `${moveEvent.clientX}px`
+
+    // 计算新宽度
+    const deltaX = moveEvent.clientX - startX
+    const newWidth = Math.max(80, startWidth + deltaX)
+
+    // 实时更新所有相同字段的单元格宽度
+    allCells.forEach((cell) => {
+      cell.style.width = `${newWidth}px`
+      cell.style.minWidth = `${newWidth}px`
+      cell.style.maxWidth = `${newWidth}px`
+    })
+  }
+
+  const handleMouseUp = (upEvent: MouseEvent) => {
+    // 计算最终宽度
+    const deltaX = upEvent.clientX - startX
+    const newWidth = Math.max(80, startWidth + deltaX)
+
+    // 更新状态
+    onResize(newWidth)
+
+    // 清理
+    if (resizeLine.parentNode) {
+      resizeLine.parentNode.removeChild(resizeLine)
+    }
+
+    // 移除全局事件监听
+    document.removeEventListener("mousemove", handleMouseMove)
+    document.removeEventListener("mouseup", handleMouseUp)
+
+    // 恢复全局样式
+    document.body.style.cursor = ""
+    document.body.style.userSelect = ""
+    document.body.classList.remove("column-resizing")
+  }
+
+  document.addEventListener("mousemove", handleMouseMove)
+  document.addEventListener("mouseup", handleMouseUp)
+}
+
+// 可排序的表头单元格组件
+const SortableHeaderCell = ({
+                              field,
+                              onResize,
+                            }: {
+  field: FieldDefinition
+  onResize: (width: number) => void
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: field.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    display: "flex",
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 100 : 1,
+    width: `${field.width}px`,
+    minWidth: `${field.width}px`,
+    maxWidth: `${field.width}px`, // 添加最大宽度限制
+  }
+
+  return (
+      <div
+          ref={setNodeRef}
+          style={style}
+          className={`relative flex items-center ${field.id === "description" ? "pl-10" : ""} group table-cell`}
+      >
+        <div className="flex-shrink-0 mr-2 cursor-move touch-none" {...attributes} {...listeners}>
+          <GripVertical className="h-4 w-4 text-gray-400" />
+        </div>
+        <div className="flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap pr-4">{field.name}</div>
+        <div
+            className="absolute right-0 top-0 h-full w-4 cursor-col-resize flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+            onMouseDown={(e) => handleColumnResizeStart(e, field, onResize)}
+        >
+          <div className="h-full w-1 bg-blue-300 hover:bg-blue-500" />
+        </div>
+      </div>
+  )
 }
 
 // 可排序的任务行组件
@@ -99,7 +214,7 @@ function SortableTaskRow({
   handleTaskUpdate: (taskId: string, updates: Partial<Task>) => void
   handleTaskClick: (task: Task) => void
   rowHeight: RowHeight
-  visibleFields: { id: string; name: string; visible: boolean; width: number; type: FieldType; options?: string[] }[]
+  visibleFields: FieldDefinition[]
   editMode: boolean
   users: { id: string; name: string }[]
 }) {
@@ -166,9 +281,9 @@ function SortableTaskRow({
 
                     {field.id === "summary" && (
                         <EditableCell
-                            value={task.summary.split("\n")[0]}
+                            value={(task.summary || "").split("\n")[0]}
                             onSave={(value) => {
-                              const newSummary = task.summary
+                              const newSummary = (task.summary || "")
                                   .split("\n")
                                   .map((line, i) => (i === 0 ? value : line))
                                   .join("\n")
@@ -179,65 +294,67 @@ function SortableTaskRow({
 
                     {field.id === "assignee" &&
                         (editMode ? (
-                            <Select
-                                value={task.assignee.id}
-                                onValueChange={(value) => {
-                                  const selectedUser = users.find((user) => user.id === value)
-                                  if (selectedUser) {
-                                    handleTaskUpdate(task.id, { assignee: selectedUser })
-                                  }
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                              <SelectTrigger className="h-8">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {users.map((user) => (
-                                    <SelectItem key={user.id} value={user.id}>
-                                      {user.name}
-                                    </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <Select
+                                  value={task.assignee?.id || ""}
+                                  onValueChange={(value) => {
+                                    const selectedUser = users.find((user) => user.id === value)
+                                    if (selectedUser) {
+                                      handleTaskUpdate(task.id, { assignee: selectedUser })
+                                    }
+                                  }}
+                              >
+                                <SelectTrigger className="h-8">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {users.map((user) => (
+                                      <SelectItem key={user.id} value={user.id}>
+                                        {user.name}
+                                      </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
                         ) : (
                             <div className="flex items-center">
                               <Avatar className="h-6 w-6 mr-2">
                                 <AvatarFallback
                                     className={`
                     ${
-                                        task.assignee.id === "zhoubeihe"
+                                        task.assignee?.id === "zhoubeihe"
                                             ? "bg-purple-500"
-                                            : task.assignee.id === "huangpaopu"
+                                            : task.assignee?.id === "huangpaopu"
                                                 ? "bg-teal-500"
                                                 : "bg-orange-500"
                                     } text-white text-xs
                   `}
                                 >
-                                  {task.assignee.name.slice(0, 2)}
+                                  {task.assignee?.name?.slice(0, 2) || "??"}
                                 </AvatarFallback>
                               </Avatar>
-                              <span>{task.assignee.name}</span>
+                              <span>{task.assignee?.name || "未分配"}</span>
                             </div>
                         ))}
 
                     {field.id === "status" &&
                         (editMode ? (
-                            <Select
-                                value={task.status}
-                                onValueChange={(value) => handleTaskUpdate(task.id, { status: value as Task["status"] })}
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                              <SelectTrigger className="h-8">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="待开始">待开始</SelectItem>
-                                <SelectItem value="进行中">进行中</SelectItem>
-                                <SelectItem value="已完成">已完成</SelectItem>
-                                <SelectItem value="已暂停">已暂停</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <Select
+                                  value={task.status}
+                                  onValueChange={(value) => handleTaskUpdate(task.id, { status: value as Task["status"] })}
+                              >
+                                <SelectTrigger className="h-8">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="待开始">待开始</SelectItem>
+                                  <SelectItem value="进行中">进行中</SelectItem>
+                                  <SelectItem value="已完成">已完成</SelectItem>
+                                  <SelectItem value="已暂停">已暂停</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                         ) : (
                             <Badge
                                 className={
@@ -256,20 +373,21 @@ function SortableTaskRow({
 
                     {field.id === "priority" &&
                         (editMode ? (
-                            <Select
-                                value={task.priority}
-                                onValueChange={(value) => handleTaskUpdate(task.id, { priority: value as Task["priority"] })}
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                              <SelectTrigger className="h-8">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="重要紧急">重要紧急</SelectItem>
-                                <SelectItem value="紧急不重要">紧急不重要</SelectItem>
-                                <SelectItem value="重要不紧急">重要不紧急</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <Select
+                                  value={task.priority}
+                                  onValueChange={(value) => handleTaskUpdate(task.id, { priority: value as Task["priority"] })}
+                              >
+                                <SelectTrigger className="h-8">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="重要紧急">重要紧急</SelectItem>
+                                  <SelectItem value="紧急不重要">紧急不重要</SelectItem>
+                                  <SelectItem value="重要不紧急">重要不紧急</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                         ) : (
                             <Badge
                                 className={
@@ -340,7 +458,20 @@ function SortableTaskRow({
               ))}
         </div>
         {expandedTasks[task.id] && (
-            <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 pl-12">
+            <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 pl-12 relative">
+              <div
+                className="absolute left-[3.25rem] top-1/2 -translate-y-1/2 transform flex items-center"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 h-7 px-2 text-xs"
+                  onClick={() => handleTaskClick(task)}
+                >
+                  详情
+                </Button>
+              </div>
               <div className="ml-20 grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <div className="text-sm font-medium">任务情况总结</div>
@@ -360,12 +491,7 @@ function SortableTaskRow({
                       }
                   >
                     {task.priority}
-                  </Badge>
-                </div>
-                <div className="col-span-2 flex justify-end mt-2">
-                  <Button size="sm" variant="outline" onClick={() => handleTaskClick(task)}>
-                    查看详情
-                  </Button>
+                 </Badge>
                 </div>
               </div>
             </div>
@@ -396,11 +522,13 @@ export default function TaskManagementTable({
     filterConfig,
     sortConfig,
     reorderTasks,
-    setVisibleFields,
     addUser,
     updateFieldWidth,
     headerOrder,
     reorderHeaders,
+    applyTemplateDefaults,
+    applySavedView,
+    defaultViewId,
   } = useTaskStore()
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
@@ -408,27 +536,51 @@ export default function TaskManagementTable({
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false)
   const [isSortDialogOpen, setIsSortDialogOpen] = useState(false)
   const [isGroupByDialogOpen, setIsGroupByDialogOpen] = useState(false)
-  const [isFieldConfigDialogOpen, setIsFieldConfigDialogOpen] = useState(false)
+  const [isFieldManagementDialogOpen, setIsFieldManagementDialogOpen] = useState(false)
   const [isAddTaskDialogOpen, setIsAddTaskDialogOpen] = useState(false)
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false)
   const [isImportTasksDialogOpen, setIsImportTasksDialogOpen] = useState(false)
+  const [isViewManagementOpen, setIsViewManagementOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("table")
   const isMobile = useMediaQuery("(max-width: 768px)")
   // 在 TaskManagementTable 组件中添加新的状态
-  const [isAddFieldDialogOpen, setIsAddFieldDialogOpen] = useState(false)
-
-  // 在 TaskManagementTable 组件中添加新的状态
-  const [orderedVisibleFields, setOrderedVisibleFields] = useState(() => [])
 
   // 在 TaskManagementTable 组件中添加新的状态
   const [isClient, setIsClient] = useState(false)
 
   // 从所有任务中提取唯一的用户
   const users = Array.from(
-      new Map(
-          data.priorityGroups.flatMap((group) => group.tasks).map((task) => [task.assignee.id, task.assignee]),
-      ).values(),
+    new Map(
+      data.priorityGroups
+        .flatMap((group) => group.tasks)
+        .flatMap((task) => (task.assignee ? [[task.assignee.id, task.assignee] as const] : [])),
+    ).values(),
   )
+
+  /**
+   * 应用示例模板默认视图
+   * 函数职责：调用 store 的 applyTemplateDefaults，将分组/排序/行高/表头拖拽等配置注入
+   */
+  const applyDemoTemplateDefaults = () => {
+    applyTemplateDefaults({
+      visibleFields,
+      headerOrder,
+      table: {
+        groupBy: "priority",
+        sortBy: "status",
+        rowHeight: viewConfig.rowHeight,
+        headerDraggable: viewConfig.headerDraggable,
+      },
+    })
+    toast({ title: "已应用模板默认视图" })
+  }
+
+  // 自动应用默认视图
+  useEffect(() => {
+    if (defaultViewId) {
+      applySavedView(defaultViewId)
+    }
+  }, [defaultViewId, applySavedView])
 
   const sensors = useSensors(
       useSensor(PointerSensor, {
@@ -445,8 +597,8 @@ export default function TaskManagementTable({
   }, [])
 
   // 处理拖拽开始
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event
+  const handleDragStart = () => {
+    // const { active } = event
     // setActiveId(active.id as string)
   }
 
@@ -550,7 +702,7 @@ export default function TaskManagementTable({
   // 展开或折叠所有分组
   const toggleAllGroups = () => {
     const allExpanded = Object.values(viewConfig.expandedGroups).every((value) => value)
-    const newExpandedGroups = {}
+    const newExpandedGroups: Record<string, boolean> = {}
 
     filteredData.priorityGroups.forEach((group) => {
       newExpandedGroups[group.id] = !allExpanded
@@ -576,6 +728,8 @@ export default function TaskManagementTable({
     })
   }
 
+
+
   // 处理添加新任务
   const handleAddTask = (task: Partial<Task>) => {
     const newTask: Task = {
@@ -594,6 +748,7 @@ export default function TaskManagementTable({
       completed: task.completed || false,
       priority: task.priority || "重要紧急",
       customFields: task.customFields || {},
+      fields: {},
     }
 
     addTask(newTask)
@@ -603,16 +758,7 @@ export default function TaskManagementTable({
     })
   }
 
-  // 添加处理添加字段的函数
-  const handleAddField = (field: { id: string; name: string; type: FieldType; options?: string[] }) => {
-    // 调用 store 中的 addField 方法
-    useTaskStore.getState().addField(field)
 
-    toast({
-      title: "字段已添加",
-      description: `字段 "${field.name}" 已成功添加到表格中`,
-    })
-  }
 
   // 处理添加新用户
   const handleAddUser = (user: { id: string; name: string; avatar?: string; role?: string; department?: string }) => {
@@ -672,7 +818,7 @@ export default function TaskManagementTable({
           // 设置表格内容区域的宽度
           const tableContent = document.querySelector(".task-product-content")
           if (tableContent) {
-            tableContent.style.minWidth = `${totalWidth}px`
+            (tableContent as HTMLElement).style.minWidth = `${totalWidth}px`
           }
         }, 0)
       },
@@ -723,16 +869,21 @@ export default function TaskManagementTable({
       let totalWidth = 20 // 初始宽度
 
       // 添加所有可见列的宽度
+      const orderedVisibleFields = headerOrder
+          .map((id) => visibleFields.find((field) => field.id === id))
+          .filter(Boolean)
+          .concat(visibleFields.filter((field) => !headerOrder.includes(field.id)))
+
       orderedVisibleFields
           .filter((field) => field && field.visible)
           .forEach((field) => {
-            totalWidth += field.width
+            if (field) totalWidth += field.width
           })
 
       // 设置表格内容区域的宽度
       const tableContent = document.querySelector(".task-product-content")
       if (tableContent) {
-        tableContent.style.minWidth = `${totalWidth}px`
+        (tableContent as HTMLElement).style.minWidth = `${totalWidth}px`
       }
     }
 
@@ -754,120 +905,7 @@ export default function TaskManagementTable({
   const orderedVisibleFieldsCallback = headerOrder
       .map((id) => visibleFields.find((field) => field.id === id))
       .filter(Boolean)
-      .concat(visibleFields.filter((field) => !headerOrder.includes(field.id)))
-
-  // 修改 SortableHeaderCell 组件中的样式和拖拽逻辑
-  const SortableHeaderCellCallback = ({ field, onResize }) => {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: field.id })
-
-    const style = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-      display: 'flex',
-      opacity: isDragging ? 0.5 : 1,
-      zIndex: isDragging ? 100 : 1,
-      width: `${field.width}px`,
-      minWidth: `${field.width}px`,
-      maxWidth: `${field.width}px`, // 添加最大宽度限制
-    }
-
-    return (
-        <div
-            ref={setNodeRef}
-            style={style}
-            className={`relative flex items-center ${field.id === "description" ? "pl-10" : ""} group table-cell`}
-        >
-          <div className="flex-shrink-0 mr-2 cursor-move touch-none" {...attributes} {...listeners}>
-            <GripVertical className="h-4 w-4 text-gray-400" />
-          </div>
-          <div className="flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap pr-4">{field.name}</div>
-          <div
-              className="absolute right-0 top-0 h-full w-4 cursor-col-resize flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-              onMouseDown={(e) => handleMouseDownCallback(e, field, field.width)}
-          >
-            <div className="h-full w-1 bg-blue-300 hover:bg-blue-500" />
-          </div>
-        </div>
-    )
-  }
-
-  // 修改拖拽处理函数，确保拖拽时不影响表格整体布局
-  const handleMouseDownCallback = (e, field, startWidth) => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    // 设置拖拽状态
-    const startX = e.clientX
-
-    // 创建辅助线
-    const resizeLine = document.createElement("div")
-    resizeLine.className = "resize-line"
-    resizeLine.style.position = "fixed"
-    resizeLine.style.top = "0"
-    resizeLine.style.bottom = "0"
-    resizeLine.style.width = "2px"
-    resizeLine.style.backgroundColor = "#3b82f6"
-    resizeLine.style.zIndex = "9999"
-    resizeLine.style.left = `${e.clientX}px`
-    document.body.appendChild(resizeLine)
-
-    // 设置全局样式
-    document.body.style.cursor = "col-resize"
-    document.body.style.userSelect = "none"
-    document.body.classList.add("column-resizing")
-
-    // 找到所有相同字段ID的单元格
-    const allCells = document.querySelectorAll(`[data-field-id="${field.id}"]`)
-
-    const handleMouseMove = (moveEvent) => {
-      // 更新辅助线位置
-      resizeLine.style.left = `${moveEvent.clientX}px`
-
-      // 计算新宽度
-      const deltaX = moveEvent.clientX - startX
-      const newWidth = Math.max(80, startWidth + deltaX)
-
-      // 实时更新所有相同字段的单元格宽度
-      allCells.forEach((cell) => {
-        cell.style.width = `${newWidth}px`
-        cell.style.minWidth = `${newWidth}px`
-        cell.style.maxWidth = `${newWidth}px`
-      })
-    }
-
-    const handleMouseUp = (upEvent) => {
-      // 计算最终宽度
-      const deltaX = upEvent.clientX - startX
-      const newWidth = Math.max(80, startWidth + deltaX)
-
-      // 更新状态
-      handleColumnResizeCallback(field.id, newWidth)
-
-      // 清理
-      if (resizeLine.parentNode) {
-        resizeLine.parentNode.removeChild(resizeLine)
-      }
-
-      // 移除全局事件监听
-      document.removeEventListener("mousemove", handleMouseMove)
-      document.removeEventListener("mouseup", handleMouseUp)
-
-      // 恢复全局样式
-      document.body.style.cursor = ""
-      document.body.style.userSelect = ""
-      document.body.classList.remove("column-resizing")
-    }
-
-    document.addEventListener("mousemove", handleMouseMove)
-    document.addEventListener("mouseup", handleMouseUp)
-  }
-
-  // 在 TaskManagementTable 组件中添加条件渲染
-  if (!isClient) {
-    return <div className="p-8 flex justify-center items-center">加载中...</div>
-  }
-
-  // Note: orderedVisibleFieldsCallback is already declared above, so we don't redeclare it here
+      .concat(visibleFields.filter((field) => !headerOrder.includes(field.id))) as FieldDefinition[]
 
   return (
       <div className="flex flex-col h-screen max-h-screen">
@@ -915,30 +953,7 @@ export default function TaskManagementTable({
           </div>
 
           <div className="flex items-center space-x-2 fixed right-4 top-2 z-20 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 border-purple-200"
-              onClick={() => window.open('http://ultra.mute.turntip.cn', '_blank')}
-            >
-              体验Ultra版
-            </Button>
-            <Button 
-              variant="default" 
-              size="sm" 
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-              onClick={() => window.open('https://pxcharts.turntip.cn', '_blank')}
-            >
-              多维表格智能云
-            </Button>
-            <Button 
-              variant="default" 
-              size="sm" 
-              className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-medium shadow-md"
-              onClick={() => window.open('https://jitword.com', '_blank')}
-            >
-              JitWord协同AI文档
-            </Button>
+            {/* 外部按钮已移除 */}
           </div>
         </header>
 
@@ -1003,13 +1018,9 @@ export default function TaskManagementTable({
                   分组
                 </Button>
 
-                <Button variant="outline" size="sm" onClick={() => setIsFieldConfigDialogOpen(true)}>
+                <Button variant="outline" size="sm" onClick={() => setIsFieldManagementDialogOpen(true)}>
                   <SlidersHorizontal className="h-3.5 w-3.5 mr-1" />
-                  字段
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => setIsAddFieldDialogOpen(true)}>
-                  <Plus className="h-3.5 w-3.5 mr-1" />
-                  添加字段
+                  字段管理
                 </Button>
 
                 <Button
@@ -1045,6 +1056,15 @@ export default function TaskManagementTable({
                 <Button variant="outline" size="sm" onClick={exportTaskData}>
                   <Download className="h-3.5 w-3.5 mr-1" />
                   导出数据
+                </Button>
+
+                <Button variant="outline" size="sm" onClick={applyDemoTemplateDefaults}>
+                  <Columns className="h-3.5 w-3.5 mr-1" />
+                  应用模板
+                </Button>
+
+                <Button variant="outline" size="sm" onClick={() => setIsViewManagementOpen(true)}>
+                  视图管理
                 </Button>
               </div>
             </div>
@@ -1082,7 +1102,7 @@ export default function TaskManagementTable({
                                         if (!field) return null
 
                                         return (
-                                            <SortableHeaderCellCallback
+                                            <SortableHeaderCell
                                                 key={field.id}
                                                 field={field}
                                                 onResize={(width) => handleColumnResizeCallback(field.id, width)}
@@ -1111,7 +1131,7 @@ export default function TaskManagementTable({
                                             </div>
                                             <div
                                                 className="absolute right-0 top-0 h-full w-4 cursor-col-resize flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-                                                onMouseDown={(e) => handleMouseDownCallback(e, field, field.width)}
+                                                onMouseDown={(e) => handleColumnResizeStart(e, field, (width) => handleColumnResizeCallback(field.id, width))}
                                             >
                                               <div className="h-full w-1 bg-blue-300 hover:bg-blue-500" />
                                             </div>
@@ -1198,8 +1218,18 @@ export default function TaskManagementTable({
 
         {/* 弹出框 */}
         <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-          <DialogContent className="sm:max-w-2xl" style={{ maxHeight: "80vh", overflowY: "auto" }}>
-            {selectedTask && <TaskDetail task={selectedTask} />}
+          <DialogContent className="sm:max-w-2xl h-[80vh] flex flex-col p-0 gap-0">
+            <div className="px-6 pt-6 pb-2">
+              <DialogHeader>
+                <DialogTitle className="sr-only">任务详情</DialogTitle>
+                <DialogDescription className="sr-only">
+                  查看和编辑任务详情，包括执行人、状态、日期和评论等。
+                </DialogDescription>
+              </DialogHeader>
+            </div>
+            <div className="flex-1 min-h-0 w-full">
+              {selectedTask && <TaskDetail task={selectedTask} />}
+            </div>
           </DialogContent>
         </Dialog>
 
@@ -1207,16 +1237,11 @@ export default function TaskManagementTable({
         <FilterDialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen} />
         <SortDialog open={isSortDialogOpen} onOpenChange={setIsSortDialogOpen} />
         <GroupByDialog open={isGroupByDialogOpen} onOpenChange={setIsGroupByDialogOpen} />
-        <FieldConfigDialog
-            open={isFieldConfigDialogOpen}
-            onOpenChange={setIsFieldConfigDialogOpen}
-            visibleFields={visibleFields}
-            setVisibleFields={setVisibleFields}
-        />
+        <FieldManagementDialog open={isFieldManagementDialogOpen} onOpenChange={setIsFieldManagementDialogOpen} />
         <AddTaskDialog open={isAddTaskDialogOpen} onOpenChange={setIsAddTaskDialogOpen} onAddTask={handleAddTask} />
         <AddUserDialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen} onAddUser={handleAddUser} />
         <ImportTasksDialog open={isImportTasksDialogOpen} onOpenChange={setIsImportTasksDialogOpen} />
-        <AddFieldDialog open={isAddFieldDialogOpen} onOpenChange={setIsAddFieldDialogOpen} onAddField={handleAddField} />
+        <ViewManagementDialog open={isViewManagementOpen} onOpenChange={setIsViewManagementOpen} />
       </div>
   )
 }

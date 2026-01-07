@@ -25,7 +25,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { SortableItem } from "@/components/sortable-item"
 import { DroppableContainer } from "@/components/droppable-container"
 import { useToast } from "@/hooks/use-toast"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -80,6 +80,7 @@ export function KanbanBoard({ data, onTaskClick, onTaskUpdate, onAddTask }: Kanb
       tasksByStatus.已停滞 = [
         {
           id: "10",
+          fields: {},
           description: "提升员工培训",
           summary: "1. 任务执行人黄泡泡正在处理其它事情，任务已停滞。 2. 任务预计���下周恢复。",
           assignee: {
@@ -125,9 +126,11 @@ export function KanbanBoard({ data, onTaskClick, onTaskUpdate, onAddTask }: Kanb
 
   // 从所有任务中提取唯一的用户
   const users: User[] = Array.from(
-      new Map(
-          data.priorityGroups.flatMap((group) => group.tasks).map((task) => [task.assignee.id, task.assignee]),
-      ).values(),
+    new Map(
+      data.priorityGroups
+        .flatMap((group) => group.tasks)
+        .flatMap((task) => (task.assignee ? [[task.assignee.id, task.assignee] as const] : [])),
+    ).values(),
   )
 
   const sensors = useSensors(
@@ -192,7 +195,7 @@ export function KanbanBoard({ data, onTaskClick, onTaskUpdate, onAddTask }: Kanb
           // 使用taskMoveInfo而不是直接调用toast
           setTaskMoveInfo({
             taskId: removed.id,
-            description: removed.description,
+            description: removed.description || "无描述",
             fromStatus: activeContainer,
             toStatus: activeContainer,
           })
@@ -257,7 +260,7 @@ export function KanbanBoard({ data, onTaskClick, onTaskUpdate, onAddTask }: Kanb
       // 使用taskMoveInfo而不是直接调用toast
       setTaskMoveInfo({
         taskId: activeTask.id,
-        description: activeTask.description,
+        description: activeTask.description || "无描述",
         fromStatus: activeContainer,
         toStatus: overContainer,
       })
@@ -303,7 +306,7 @@ export function KanbanBoard({ data, onTaskClick, onTaskUpdate, onAddTask }: Kanb
           ...prev[isAddTaskDialogOpen as keyof typeof prev],
           {
             id: `new-${Date.now()}`,
-            ...(taskWithStatus as Task),
+            ...(taskWithStatus as Omit<Task, "id">),
           },
         ],
       }))
@@ -420,20 +423,20 @@ export function KanbanBoard({ data, onTaskClick, onTaskUpdate, onAddTask }: Kanb
                     <div className="flex items-center">
                       <Avatar className="h-4 w-4 mr-1">
                         <AvatarFallback
-                            className={`
+                          className={`
                         ${
-                                activeTask.assignee.id === "zhoubeihe"
-                                    ? "bg-purple-500"
-                                    : activeTask.assignee.id === "huangpaopu"
-                                        ? "bg-teal-500"
-                                        : "bg-orange-500"
+                              activeTask.assignee?.id === "zhoubeihe"
+                                ? "bg-purple-500"
+                                : activeTask.assignee?.id === "huangpaopu"
+                                  ? "bg-teal-500"
+                                  : "bg-orange-500"
                             } text-white text-[8px]
                       `}
                         >
-                          {activeTask.assignee.name.slice(0, 2)}
+                          {activeTask.assignee?.name?.slice(0, 2) || "??"}
                         </AvatarFallback>
                       </Avatar>
-                      <span>{activeTask.assignee.name}</span>
+                      <span>{activeTask.assignee?.name || "Unassigned"}</span>
                     </div>
                   </div>
                 </div>
@@ -446,6 +449,9 @@ export function KanbanBoard({ data, onTaskClick, onTaskUpdate, onAddTask }: Kanb
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>添加新任务到 {isAddTaskDialogOpen}</DialogTitle>
+              <DialogDescription className="sr-only">
+                在该状态列下创建一个新任务。
+              </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
@@ -646,20 +652,20 @@ function KanbanCard({ task, onClick }: KanbanCardProps) {
             <div className="flex items-center">
               <Avatar className="h-4 w-4 mr-1">
                 <AvatarFallback
-                    className={`
+                  className={`
                   ${
-                        task.assignee.id === "zhoubeihe"
-                            ? "bg-purple-500"
-                            : task.assignee.id === "huangpaopu"
-                                ? "bg-teal-500"
-                                : "bg-orange-500"
+                      task.assignee?.id === "zhoubeihe"
+                        ? "bg-purple-500"
+                        : task.assignee?.id === "huangpaopu"
+                          ? "bg-teal-500"
+                          : "bg-orange-500"
                     } text-white text-[8px]
                 `}
                 >
-                  {task.assignee.name.slice(0, 2)}
+                  {task.assignee?.name?.slice(0, 2) || "??"}
                 </AvatarFallback>
               </Avatar>
-              <span>{task.assignee.name}</span>
+              <span>{task.assignee?.name || "Unassigned"}</span>
             </div>
           </div>
 

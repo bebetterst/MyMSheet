@@ -10,8 +10,8 @@ export function WorkloadChart({ tasks }: WorkloadChartProps) {
   const assigneeCounts: Record<string, number> = {}
 
   tasks.forEach((task) => {
-    const assignee = task.assignee || "未分配"
-    assigneeCounts[assignee] = (assigneeCounts[assignee] || 0) + 1
+    const assigneeName = task.assignee?.name || "未分配"
+    assigneeCounts[assigneeName] = (assigneeCounts[assigneeName] || 0) + 1
   })
 
   // 转换为图表数据格式

@@ -17,12 +17,21 @@ import { CalendarIcon, CheckCircle, Clock, FileText, Users, Save, X } from "luci
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { useTaskStore } from "@/lib/task-store"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface TaskDetailProps {
   task: Task
   onClose?: () => void
 }
 
+/**
+ * 任务详情组件
+ * 用途：用于展示和编辑任务详情信息，提供“详情/评论/历史记录”三种视图，
+ * 并在固定窗口高度下，通过内部滚动实现平滑浏览，仅在内容超出时显示滚动条。
+ * 参数：
+ * - task: 初始任务数据
+ * - onClose: 关闭弹窗时的回调（可选）
+ */
 export function TaskDetail({ task: initialTask, onClose }: TaskDetailProps) {
   const { toast } = useToast()
   const { updateTask, data } = useTaskStore()
@@ -40,10 +49,34 @@ export function TaskDetail({ task: initialTask, onClose }: TaskDetailProps) {
 
   // 从所有任务中提取唯一的用户
   const users = Array.from(
-      new Map(
-          data.priorityGroups.flatMap((group) => group.tasks).map((task) => [task.assignee.id, task.assignee]),
-      ).values(),
+    new Map(
+      data.priorityGroups
+        .flatMap((group) => group.tasks)
+        .flatMap((task) => (task.assignee ? [[task.assignee.id, task.assignee] as const] : [])),
+    ).values(),
   )
+
+  // 获取所有其他任务用于前置任务选择
+  const allTasks = data.priorityGroups.flatMap((group) => group.tasks)
+  const availableTasks = allTasks.filter((t) => t.id !== task.id)
+
+  // 处理前置任务变化
+  const handleDependencyChange = (dependencyId: string) => {
+    const currentDependencies = task.dependencies || []
+    if (currentDependencies.includes(dependencyId)) {
+      return
+    }
+    handleChange("dependencies", [...currentDependencies, dependencyId])
+  }
+
+  // 移除前置任务
+  const removeDependency = (dependencyId: string) => {
+    const currentDependencies = task.dependencies || []
+    handleChange(
+      "dependencies",
+      currentDependencies.filter((id) => id !== dependencyId),
+    )
+  }
 
   // 当初始任务变化时更新本地状态
   useEffect(() => {
@@ -107,8 +140,9 @@ export function TaskDetail({ task: initialTask, onClose }: TaskDetailProps) {
   }
 
   return (
-      <div className="space-y-4" style={{ maxHeight: "80vh", overflowY: "auto", padding: "0 4px" }}>
-        <div className="flex items-start justify-between">
+      <ScrollArea className="h-full">
+        <div className="space-y-4 px-6 pb-6">
+          <div className="flex items-start justify-between">
           <div>
             {isEditing ? (
                 <Input
@@ -189,7 +223,7 @@ export function TaskDetail({ task: initialTask, onClose }: TaskDetailProps) {
               <div className="space-y-2">
                 <Label>任务执行人</Label>
                 {isEditing ? (
-                    <Select value={task.assignee.id} onValueChange={handleAssigneeChange}>
+                    <Select value={task.assignee?.id} onValueChange={handleAssigneeChange}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="选择执行人" />
                       </SelectTrigger>
@@ -207,18 +241,18 @@ export function TaskDetail({ task: initialTask, onClose }: TaskDetailProps) {
                         <AvatarFallback
                             className={`
                         ${
-                                task.assignee.id === "zhoubeihe"
+                                task.assignee?.id === "zhoubeihe"
                                     ? "bg-purple-500"
-                                    : task.assignee.id === "huangpaopu"
+                                    : task.assignee?.id === "huangpaopu"
                                         ? "bg-teal-500"
                                         : "bg-orange-500"
                             } text-white
                       `}
                         >
-                          {task.assignee.name.slice(0, 2)}
+                          {task.assignee?.name?.slice(0, 2) || "??"}
                         </AvatarFallback>
                       </Avatar>
-                      <span>{task.assignee.name}</span>
+                      <span>{task.assignee?.name || "Unassigned"}</span>
                     </div>
                 )}
               </div>
@@ -360,6 +394,61 @@ export function TaskDetail({ task: initialTask, onClose }: TaskDetailProps) {
                   <span>正常</span>
                 </div>
               </div>
+
+              <div className="col-span-2 space-y-2">
+                <Label>前置任务</Label>
+                {isEditing ? (
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap gap-2">
+                      {task.dependencies?.map((depId) => {
+                        const depTask = allTasks.find((t) => t.id === depId)
+                        return (
+                          <Badge key={depId} variant="secondary" className="pr-1">
+                            {depTask?.description || depId}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-4 w-4 ml-1 p-0 hover:bg-transparent"
+                              onClick={() => removeDependency(depId)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </Badge>
+                        )
+                      })}
+                    </div>
+                    <Select onValueChange={handleDependencyChange}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="添加前置任务..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableTasks
+                          .filter((t) => !(task.dependencies || []).includes(t.id))
+                          .map((t) => (
+                            <SelectItem key={t.id} value={t.id}>
+                              {t.description}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {task.dependencies && task.dependencies.length > 0 ? (
+                      task.dependencies.map((depId) => {
+                        const depTask = allTasks.find((t) => t.id === depId)
+                        return (
+                          <Badge key={depId} variant="outline">
+                            {depTask?.description || depId}
+                          </Badge>
+                        )
+                      })
+                    ) : (
+                      <span className="text-sm text-gray-500">无前置任务</span>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -475,5 +564,6 @@ export function TaskDetail({ task: initialTask, onClose }: TaskDetailProps) {
           </TabsContent>
         </Tabs>
       </div>
+    </ScrollArea>
   )
 }

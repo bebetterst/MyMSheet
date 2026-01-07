@@ -91,9 +91,10 @@ export function ResizableHeader({
 
       // 实时更新所有相同字段的单元格宽度
       allCells.forEach((cell) => {
-        cell.style.width = `${newWidth}px`
-        cell.style.minWidth = `${newWidth}px`
-        cell.style.maxWidth = `${newWidth}px`
+        const htmlCell = cell as HTMLElement
+        htmlCell.style.width = `${newWidth}px`
+        htmlCell.style.minWidth = `${newWidth}px`
+        htmlCell.style.maxWidth = `${newWidth}px`
       })
     }
   }

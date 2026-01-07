@@ -41,8 +41,9 @@ function generateTasks(num: number) {
         const tasks = [];
         for (let j = 0; j < tasksInCategory; j++) {
             const status = ["待开始", "进行中", "已完成"][Math.floor(Math.random() * 3)];
-            const task = {
+            const task: any = {
                 id: (i * 10 + j + 10).toString(), // 保证唯一ID
+                fields: {},
                 description: taskDescriptions[Math.floor(Math.random() * taskDescriptions.length)],
                 summary: `任务概述：随机生成的任务内容${i + j}`,
                 assignee: assignees[Math.floor(Math.random() * assignees.length)],

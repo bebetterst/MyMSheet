@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
@@ -166,6 +166,9 @@ export function ImportTasksDialog({ open, onOpenChange }: ImportTasksDialogProps
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>导入任务数据</DialogTitle>
+          <DialogDescription className="sr-only">
+            上传 JSON 文件以批量导入任务。
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
@@ -209,7 +212,7 @@ export function ImportTasksDialog({ open, onOpenChange }: ImportTasksDialogProps
                   <div key={index} className="mb-2 pb-2 border-b last:border-0 last:mb-0 last:pb-0">
                     <p className="font-medium">{task.description}</p>
                     <div className="flex flex-wrap gap-2 mt-1 text-xs">
-                      <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">{task.assignee.name}</span>
+                      <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">{task.assignee?.name || "未知"}</span>
                       <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">{task.status}</span>
                       <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded-full">{task.priority}</span>
                     </div>

@@ -2,30 +2,37 @@
 
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import type { TaskData, Task, User, PriorityGroup, FilterConfig, SortConfig, ViewConfig, FieldType } from "@/lib/types"
+import type { TaskData, Task, User, PriorityGroup, FilterConfig, SortConfig, ViewConfig, FieldType, FieldDefinition, GanttConfig } from "@/lib/types"
 import { initialData } from "@/lib/data"
 
-// 在初始化visibleFields时添加默认宽度
-const initialVisibleFields = [
-  { id: "description", name: "任务描述", visible: true, width: 240, type: "文本" as FieldType },
-  { id: "summary", name: "任务情况总结", visible: true, width: 240, type: "文本" as FieldType },
-  { id: "assignee", name: "任务执行人", visible: true, width: 120, type: "单选" as FieldType },
-  { id: "status", name: "进展状态", visible: true, width: 100, type: "标签" as FieldType },
-  { id: "priority", name: "优先级", visible: true, width: 100, type: "标签" as FieldType },
-  { id: "startDate", name: "开始日期", visible: true, width: 120, type: "文本" as FieldType },
-  { id: "expectedEndDate", name: "预计完成日期", visible: true, width: 120, type: "文本" as FieldType },
-  { id: "isDelayed", name: "是否延期", visible: true, width: 100, type: "复选" as FieldType },
-  { id: "actualEndDate", name: "实际完成日期", visible: true, width: 120, type: "文本" as FieldType },
-  { id: "completed", name: "最终状态", visible: true, width: 100, type: "复选" as FieldType },
-]
+// 防抖保存函数
+let saveTimeout: NodeJS.Timeout | null = null
+const debouncedSave = (data: any) => {
+  if (saveTimeout) clearTimeout(saveTimeout)
+  saveTimeout = setTimeout(async () => {
+    try {
+      await fetch("/api/storage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+      console.log("Data synced to server")
+    } catch (error) {
+      console.error("Failed to sync data:", error)
+    }
+  }, 1000) // 1秒防抖
+}
 
 interface TaskStore {
+  isLoading: boolean
+  fetchData: () => Promise<void>
+  
   data: TaskData
   searchQuery: string
   setSearchQuery: (query: string) => void
   filteredData: TaskData
   addTask: (task: Task) => void
-  addMultipleTasks: (tasks: Task[]) => void // 新增批量添加任务方法
+  addMultipleTasks: (tasks: Task[]) => void
   updateTask: (taskId: string, updates: Partial<Task>) => void
   addUser: (user: User) => void
   moveTask: (taskId: string, newStatus: Task["status"]) => void
@@ -34,6 +41,12 @@ interface TaskStore {
   // 视图配置
   viewConfig: ViewConfig
   updateViewConfig: (updates: Partial<ViewConfig>) => void
+
+  // 甘特图配置
+  ganttConfig: GanttConfig
+  updateGanttConfig: (updates: Partial<GanttConfig>) => void
+  updateGanttFieldMapping: (updates: Partial<GanttConfig["fieldMapping"]>) => void
+  updateGanttViewSettings: (updates: Partial<GanttConfig["viewSettings"]>) => void
 
   // 筛选配置
   filterConfig: FilterConfig
@@ -51,580 +64,915 @@ interface TaskStore {
   regroupData: () => TaskData
 
   // 字段配置
-  visibleFields: { id: string; name: string; visible: boolean; width: number; type: FieldType; options?: string[] }[]
-  setVisibleFields: (
-      fields: { id: string; name: string; visible: boolean; width: number; type: FieldType; options?: string[] }[],
-  ) => void
+  visibleFields: FieldDefinition[] // 使用 FieldDefinition 类型
+  setVisibleFields: (fields: FieldDefinition[]) => void
   updateFieldWidth: (fieldId: string, width: number) => void
+  
+  // 字段管理
+  addField: (field: FieldDefinition) => void
+  updateFieldType: (fieldId: string, type: FieldType) => void
+  updateField: (fieldId: string, updates: Partial<FieldDefinition>) => void
+  deleteField: (fieldId: string) => void
 
   // 表头顺序
   headerOrder: string[]
   setHeaderOrder: (order: string[]) => void
   reorderHeaders: (oldIndex: number, newIndex: number) => void
 
-  // 添加删除用户方法
+  // 用户管理
   deleteUser: (userId: string) => void
-
-  // 添加重新排序用户方法
   reorderUsers: (oldIndex: number, newIndex: number) => void
-
-  // 添加获取已排序用户的方法
   getSortedUsers: () => User[]
-
-  // 添加用户顺序存储
   userOrder: string[]
   setUserOrder: (userIds: string[]) => void
 
-  // 添加字段相关方法
-  addField: (field: { id: string; name: string; type: FieldType; options?: string[] }) => void
-  updateFieldType: (fieldId: string, type: FieldType) => void
-
-  // 添加自定义字段值方法
+  // 自定义字段值
   updateTaskCustomField: (taskId: string, fieldId: string, value: any) => void
+
+  // 模板/视图注入方法
+  applyTemplateDefaults: (defaults: {
+    visibleFields?: FieldDefinition[]
+    headerOrder?: string[]
+    table?: { groupBy?: string; sortBy?: string; rowHeight?: ViewConfig["rowHeight"]; headerDraggable?: boolean }
+    filter?: Partial<FilterConfig>
+  }) => void
+  applyViewConfigFromTemplate: (view: {
+    groupBy?: string
+    sort?: { field?: string | null; direction?: "asc" | "desc"; isActive?: boolean }
+    filter?: Partial<FilterConfig>
+    rowHeight?: ViewConfig["rowHeight"]
+    headerDraggable?: boolean
+  }) => void
+
+  // 命名视图管理
+  views: { id: string; name: string; config: { groupBy?: string; sort?: { field?: string | null; direction?: "asc" | "desc"; isActive?: boolean }; filter?: Partial<FilterConfig>; rowHeight?: ViewConfig["rowHeight"]; headerDraggable?: boolean } }[]
+  defaultViewId: string | null
+  saveCurrentView: (name: string) => string
+  applySavedView: (id: string) => void
+  renameView: (id: string, name: string) => void
+  deleteView: (id: string) => void
+  setDefaultView: (id: string) => void
 }
 
+const getStorageData = (state: TaskStore) => ({
+  data: state.data,
+  viewConfig: state.viewConfig,
+  filterConfig: state.filterConfig,
+  sortConfig: state.sortConfig,
+  groupBy: state.groupBy,
+  visibleFields: state.visibleFields,
+  userOrder: state.userOrder,
+  headerOrder: state.headerOrder,
+  ganttConfig: state.ganttConfig,
+  views: state.views,
+  defaultViewId: state.defaultViewId,
+})
+
 export const useTaskStore = create<TaskStore>()(
-    persist(
-        (set, get) => ({
-          data: initialData,
-          searchQuery: "",
+  persist(
+    (set, get) => ({
+      isLoading: true,
+      fetchData: async () => {
+        set({ isLoading: true })
+        try {
+          const res = await fetch("/api/storage")
+          if (res.ok) {
+            const serverData = await res.json()
+            if (serverData.data) {
+                // 合并服务器数据到本地状态
+                set((state) => {
+                    const newState = { ...state, ...serverData }
+                    // 重新应用筛选和排序确保视图正确
+                    applyFiltersAndSort(newState)
+                    return newState
+                })
+            }
+          }
+        } catch (error) {
+          console.error("Failed to fetch data:", error)
+        } finally {
+          set({ isLoading: false })
+        }
+      },
 
-          // 视图配置
-          viewConfig: {
-            rowHeight: "中等",
-            editMode: false,
-            expandedGroups: {
-              重要紧急: true,
-              紧急不重要: true,
-              重要不紧急: true,
-            },
-            expandedTasks: {},
-            headerDraggable: false, // 默认不启用表头拖拽
-          },
+      data: initialData,
+      searchQuery: "",
+      views: [],
+      defaultViewId: null,
 
-          updateViewConfig: (updates) => {
-            set((state) => ({
-              viewConfig: {
-                ...state.viewConfig,
-                ...updates,
-              },
-            }))
-          },
+      // 视图配置
+      viewConfig: {
+        rowHeight: "中等",
+        editMode: false,
+        expandedGroups: {
+          重要紧急: true,
+          紧急不重要: true,
+          重要不紧急: true,
+        },
+        expandedTasks: {},
+        headerDraggable: false,
+      },
 
-          // 筛选配置
-          filterConfig: {
-            status: null,
-            priority: null,
-            assignee: null,
-            dateRange: null,
-            isActive: false,
-          },
+      updateViewConfig: (updates) => {
+        set((state) => {
+          const newConfig = { ...state.viewConfig, ...updates }
+          const newState = { ...state, viewConfig: newConfig }
+          debouncedSave(getStorageData(newState))
+          return { viewConfig: newConfig }
+        })
+      },
 
-          setFilterConfig: (config) => {
-            set({ filterConfig: config })
-            get().applyFilters()
-          },
+      // 甘特图配置
+      ganttConfig: {
+        fieldMapping: {
+          title: "description",
+          startDate: "startDate",
+          endDate: "expectedEndDate",
+          progress: "progress",
+          group: "priority",
+          color: "priority",
+          dependencies: "dependencies"
+        },
+        viewSettings: {
+          timeScale: "day",
+          showWeekend: true,
+          showToday: true,
+          zoomLevel: 100
+        }
+      },
 
-          // 排序配置
-          sortConfig: {
-            field: null,
-            direction: "asc",
-            isActive: false,
-          },
+      updateGanttConfig: (updates) => {
+        set((state) => {
+          const newConfig = { ...state.ganttConfig, ...updates }
+          const newState = { ...state, ganttConfig: newConfig }
+          debouncedSave(getStorageData(newState))
+          return { ganttConfig: newConfig }
+        })
+      },
 
-          setSortConfig: (config) => {
-            set({ sortConfig: config })
-            get().applySorting()
-          },
+      updateGanttFieldMapping: (updates) => {
+        set((state) => {
+          const newConfig = {
+            ...state.ganttConfig,
+            fieldMapping: { ...state.ganttConfig.fieldMapping, ...updates }
+          }
+          const newState = { ...state, ganttConfig: newConfig }
+          debouncedSave(getStorageData(newState))
+          return { ganttConfig: newConfig }
+        })
+      },
 
-          // 分组配置
-          groupBy: "priority", // 默认按优先级分组
+      updateGanttViewSettings: (updates) => {
+        set((state) => {
+          const newConfig = {
+            ...state.ganttConfig,
+            viewSettings: { ...state.ganttConfig.viewSettings, ...updates }
+          }
+          const newState = { ...state, ganttConfig: newConfig }
+          debouncedSave(getStorageData(newState))
+          return { ganttConfig: newConfig }
+        })
+      },
 
-          setGroupBy: (field) => {
-            set({ groupBy: field })
+      // 筛选配置
+      filterConfig: {
+        status: null,
+        priority: null,
+        assignee: null,
+        dateRange: null,
+        isActive: false,
+      },
+
+      setFilterConfig: (config) => {
+        set((state) => {
+          const newState = { ...state, filterConfig: config }
+          debouncedSave(getStorageData(newState))
+          return { filterConfig: config }
+        })
+        get().applyFilters()
+      },
+
+      // 排序配置
+      sortConfig: {
+        field: null,
+        direction: "asc",
+        isActive: false,
+      },
+
+      setSortConfig: (config) => {
+        set((state) => {
+          const newState = { ...state, sortConfig: config }
+          debouncedSave(getStorageData(newState))
+          return { sortConfig: config }
+        })
+        get().applySorting()
+      },
+
+      // 分组配置
+      groupBy: "priority",
+
+      setGroupBy: (field) => {
+        set((state) => {
+          const newState = { ...state, groupBy: field }
+          debouncedSave(getStorageData(newState))
+          return { groupBy: field }
+        })
+        const regroupedData = get().regroupData()
+        set({ filteredData: regroupedData })
+      },
+
+      // 可见字段 - 初始化为 initialData.fields
+      visibleFields: initialData.fields,
+
+      // 表头顺序
+      headerOrder: initialData.fields.filter((f) => f.visible).map((f) => f.id),
+
+      setHeaderOrder: (order) => {
+        set((state) => {
+          const newState = { ...state, headerOrder: order }
+          debouncedSave(getStorageData(newState))
+          return { headerOrder: order }
+        })
+      },
+
+      reorderHeaders: (oldIndex, newIndex) => {
+        set((state) => {
+          const items = Array.from(state.headerOrder)
+          const [reorderedItem] = items.splice(oldIndex, 1)
+          items.splice(newIndex, 0, reorderedItem)
+
+          const newState = { ...state, headerOrder: items }
+          debouncedSave(getStorageData(newState))
+          return { headerOrder: items }
+        })
+      },
+
+      setVisibleFields: (fields) => {
+        set((state) => {
+            // 同时更新 data.fields
+            const newData = { ...state.data, fields: fields }
+            const newState = { ...state, visibleFields: fields, data: newData }
+            debouncedSave(getStorageData(newState))
+            return { visibleFields: fields, data: newData }
+        })
+      },
+
+      setSearchQuery: (query: string) => {
+        set((state) => {
+          const filtered = filterData(state.data, query, state.filterConfig)
+          return {
+            searchQuery: query,
+            filteredData: filtered,
+          }
+        })
+      },
+
+      filteredData: initialData,
+
+      addTask: (task: Task) => {
+        set((state) => {
+          const newData = { ...state.data }
+          const targetGroupId = task.priority
+          const groupIndex = newData.priorityGroups.findIndex((group) => group.id === targetGroupId)
+          
+          // 确保新任务有 fields 属性
+          if (!task.fields) {
+              task.fields = {}
+          }
+
+          if (groupIndex !== -1) {
+            newData.priorityGroups[groupIndex].tasks = [...newData.priorityGroups[groupIndex].tasks, task]
+          } else if (newData.priorityGroups.length > 0) {
+            newData.priorityGroups[0].tasks = [...newData.priorityGroups[0].tasks, task]
+          }
+
+          const filtered = filterData(newData, state.searchQuery, state.filterConfig)
+          
+          // 触发保存
+          debouncedSave(getStorageData({ ...state, data: newData }))
+
+          return {
+            data: newData,
+            filteredData: filtered,
+          }
+        })
+      },
+
+      addMultipleTasks: (tasks: Task[]) => {
+        set((state) => {
+          const newState = { ...state }
+          // Clone data to avoid mutation
+          newState.data = JSON.parse(JSON.stringify(state.data))
+
+          tasks.forEach((task) => {
+            const priorityGroup = newState.data.priorityGroups.find((group) => group.id === task.priority)
+
+            if (priorityGroup) {
+              if (!task.id || newState.data.priorityGroups.some((g) => g.tasks.some((t) => t.id === task.id))) {
+                task.id = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+              }
+              // 确保 fields 存在
+              if (!task.fields) {
+                  task.fields = {}
+              }
+
+              priorityGroup.tasks.push(task)
+            }
+          })
+
+          applyFiltersAndSort(newState)
+          
+          // 触发保存
+          debouncedSave(getStorageData(newState))
+          
+          return newState
+        })
+      },
+
+      updateTask: (taskId: string, updates: Partial<Task>) => {
+        set((state) => {
+          const newData = JSON.parse(JSON.stringify(state.data))
+
+          for (const group of newData.priorityGroups) {
+            const taskIndex = group.tasks.findIndex((task: Task) => task.id === taskId)
+            if (taskIndex !== -1) {
+              group.tasks[taskIndex] = { ...group.tasks[taskIndex], ...updates }
+              break
+            }
+          }
+
+          const filtered = filterData(newData, state.searchQuery, state.filterConfig)
+          
+          // 触发保存
+          debouncedSave(getStorageData({ ...state, data: newData }))
+
+          return {
+            data: newData,
+            filteredData: filtered,
+          }
+        })
+      },
+
+      userOrder: [],
+      setUserOrder: (userIds: string[]) => {
+        set((state) => {
+            const newState = { ...state, userOrder: userIds }
+            debouncedSave(getStorageData(newState))
+            return { userOrder: userIds }
+        })
+      },
+
+      deleteUser: (userId: string) => {
+        set((state) => {
+          const newData = JSON.parse(JSON.stringify(state.data))
+
+          for (const group of newData.priorityGroups) {
+            group.tasks = group.tasks.filter((task: Task) => task.assignee?.id !== userId)
+          }
+
+          const newUserOrder = state.userOrder.filter((id) => id !== userId)
+          const filtered = filterData(newData, state.searchQuery, state.filterConfig)
+          
+          const newState = { ...state, data: newData, userOrder: newUserOrder }
+          debouncedSave(getStorageData(newState))
+          
+          return {
+            data: newData,
+            filteredData: filtered,
+            userOrder: newUserOrder,
+          }
+        })
+      },
+
+      reorderUsers: (oldIndex: number, newIndex: number) => {
+        set((state) => {
+          const newUserOrder = [...state.userOrder]
+          const [removed] = newUserOrder.splice(oldIndex, 1)
+          newUserOrder.splice(newIndex, 0, removed)
+
+          const newState = { ...state, userOrder: newUserOrder }
+          debouncedSave(getStorageData(newState))
+
+          return { userOrder: newUserOrder }
+        })
+      },
+
+      getSortedUsers: () => {
+        const state = get()
+        const allUsers = Array.from(
+            new Map(
+                state.data.priorityGroups
+                  .flatMap((group) => group.tasks)
+                  .filter((task) => task.assignee)
+                  .map((task) => [task.assignee!.id, task.assignee!]),
+            ).values(),
+        )
+
+        if (state.userOrder.length > 0) {
+          const userMap = new Map(allUsers.map((user) => [user.id, user]))
+          const orderedUsers = [
+            ...state.userOrder.filter((id) => userMap.has(id)).map((id) => userMap.get(id)!),
+            ...allUsers.filter((user) => !state.userOrder.includes(user.id)),
+          ]
+          return orderedUsers
+        }
+        return allUsers
+      },
+
+      addUser: (user: User) => {
+        set((state) => {
+          const existingUsers = state.data.priorityGroups
+              .flatMap((group) => group.tasks)
+              .map((task) => task.assignee?.id)
+              .filter(Boolean) as string[]
+
+          if (existingUsers.includes(user.id)) {
+            return state
+          }
+
+          const emptyTask: Task = {
+            id: `empty-task-${Date.now()}-${user.id}`,
+            fields: {},
+            description: "欢迎使用任务管理系统",
+            summary: "这是一个示例任务，您可以添加更多任务或删除此任务。",
+            assignee: user,
+            status: "待开始",
+            startDate: new Date().toISOString().split("T")[0].replace(/-/g, "/"),
+            expectedEndDate: undefined,
+            actualEndDate: undefined,
+            isDelayed: false,
+            completed: false,
+            priority: "重要紧急",
+          }
+
+          const newData = { ...state.data }
+          const groupIndex = newData.priorityGroups.findIndex((group) => group.id === "重要紧急")
+
+          if (groupIndex !== -1) {
+            newData.priorityGroups[groupIndex].tasks = [...newData.priorityGroups[groupIndex].tasks, emptyTask]
+          } else if (newData.priorityGroups.length > 0) {
+            newData.priorityGroups[0].tasks = [...newData.priorityGroups[0].tasks, emptyTask]
+          }
+
+          const newUserOrder = [...state.userOrder, user.id]
+          const filtered = filterData(newData, state.searchQuery, state.filterConfig)
+          
+          const newState = { ...state, data: newData, userOrder: newUserOrder }
+          debouncedSave(getStorageData(newState))
+          
+          return {
+            data: newData,
+            filteredData: filtered,
+            userOrder: newUserOrder,
+          }
+        })
+      },
+
+      moveTask: (taskId: string, newStatus: Task["status"]) => {
+        set((state) => {
+          const newData = JSON.parse(JSON.stringify(state.data))
+          let taskToUpdate: Task | null = null
+          let taskGroup: PriorityGroup | null = null
+          let taskIndex = -1
+
+          for (const group of newData.priorityGroups) {
+            const index = group.tasks.findIndex((task: Task) => task.id === taskId)
+            if (index !== -1) {
+              taskToUpdate = { ...group.tasks[index] }
+              taskGroup = group
+              taskIndex = index
+              break
+            }
+          }
+
+          if (taskToUpdate && taskGroup) {
+            taskToUpdate.status = newStatus
+            if (newStatus === "已完成") {
+              taskToUpdate.completed = true
+              taskToUpdate.actualEndDate = new Date().toISOString().split("T")[0].replace(/-/g, "/")
+            } else if (taskToUpdate.status === "已完成") {
+              taskToUpdate.completed = false
+              taskToUpdate.actualEndDate = undefined
+            }
+            taskGroup.tasks[taskIndex] = taskToUpdate
+          }
+
+          const filtered = filterData(newData, state.searchQuery, state.filterConfig)
+
+          // 触发保存
+          debouncedSave(getStorageData({ ...state, data: newData }))
+
+          return {
+            data: newData,
+            filteredData: filtered,
+          }
+        })
+      },
+
+      reorderTasks: (priorityGroupId: string, oldIndex: number, newIndex: number, targetGroupId?: string) => {
+        set((state) => {
+          const newData = JSON.parse(JSON.stringify(state.data))
+          const sourceGroupIndex = newData.priorityGroups.findIndex((group: PriorityGroup) => group.id === priorityGroupId)
+          if (sourceGroupIndex === -1) return state
+
+          const [taskToMove] = newData.priorityGroups[sourceGroupIndex].tasks.splice(oldIndex, 1)
+
+          if (targetGroupId && targetGroupId !== priorityGroupId) {
+            taskToMove.priority = targetGroupId
+            const targetGroupIndex = newData.priorityGroups.findIndex((group: PriorityGroup) => group.id === targetGroupId)
+
+            if (targetGroupIndex !== -1) {
+              const insertAt = Math.min(newIndex, newData.priorityGroups[targetGroupIndex].tasks.length)
+              newData.priorityGroups[targetGroupIndex].tasks.splice(insertAt, 0, taskToMove)
+            } else {
+              newData.priorityGroups[sourceGroupIndex].tasks.splice(oldIndex, 0, taskToMove)
+            }
+          } else {
+            newData.priorityGroups[sourceGroupIndex].tasks.splice(newIndex, 0, taskToMove)
+          }
+
+          const filtered = filterData(newData, state.searchQuery, state.filterConfig)
+          
+          debouncedSave(getStorageData({ ...state, data: newData }))
+          
+          return {
+            data: newData,
+            filteredData: filtered,
+          }
+        })
+      },
+
+      applyFilters: () => {
+        set((state) => {
+          const filteredData = filterData(state.data, state.searchQuery, state.filterConfig)
+          return { filteredData }
+        })
+      },
+
+      applySorting: () => {
+        set((state) => {
+          const sortedData = JSON.parse(JSON.stringify(state.filteredData))
+          if (state.sortConfig.isActive && state.sortConfig.field) {
+            for (const group of sortedData.priorityGroups) {
+              group.tasks = sortTasks(group.tasks, state.sortConfig.field!, state.sortConfig.direction)
+            }
+          }
+          return { filteredData: sortedData }
+        })
+      },
+
+      regroupData: () => {
+        const { data, groupBy, searchQuery, filterConfig } = get()
+        if (groupBy === "priority") {
+          return filterData(data, searchQuery, filterConfig)
+        }
+
+        const allTasks = data.priorityGroups.flatMap((group) => group.tasks)
+        const groupedTasks: Record<string, Task[]> = {}
+
+        allTasks.forEach((task) => {
+          let groupKey = ""
+          switch (groupBy) {
+            case "status":
+              groupKey = task.status || ""
+              break
+            case "assignee":
+              groupKey = task.assignee?.name || ""
+              break
+            case "completed":
+              groupKey = task.completed ? "已完成" : "进行中"
+              break
+            default:
+              groupKey = task.priority || ""
+          }
+
+          if (!groupedTasks[groupKey]) {
+            groupedTasks[groupKey] = []
+          }
+          groupedTasks[groupKey].push(task)
+        })
+
+        const newGroups: PriorityGroup[] = Object.keys(groupedTasks).map((key) => ({
+          id: key,
+          name: key,
+          tasks: groupedTasks[key],
+        }))
+
+        const newData: TaskData = {
+          ...data,
+          priorityGroups: newGroups,
+        }
+        return filterData(newData, searchQuery, filterConfig)
+      },
+
+      updateFieldWidth: (fieldId: string, width: number) => {
+        set((state) => {
+          const safeWidth = Math.max(80, width)
+          // 更新 visibleFields
+          const updatedFields = state.visibleFields.map((field) =>
+              field.id === fieldId ? { ...field, width: safeWidth } : field,
+          )
+          
+          // 同时更新 data.fields
+          const currentFields = state.data.fields || state.visibleFields || []
+          const newData = {
+              ...state.data,
+              fields: currentFields.map(f => f.id === fieldId ? {...f, width: safeWidth} : f)
+          }
+
+          const newState = { ...state, visibleFields: updatedFields, data: newData }
+          debouncedSave(getStorageData(newState))
+
+          return { visibleFields: updatedFields, data: newData }
+        })
+      },
+
+      addField: (field) => {
+        set((state) => {
+          if (state.visibleFields.some((f) => f.id === field.id)) {
+            return state
+          }
+
+          const newField: FieldDefinition = {
+            ...field,
+            visible: true,
+            width: field.width || 150,
+            system: false
+          }
+
+          const updatedFields = [...state.visibleFields, newField]
+          const updatedHeaderOrder = [...state.headerOrder, field.id]
+          
+          // 更新 data.fields
+          const currentFields = state.data.fields || state.visibleFields || []
+          const newData = {
+              ...state.data,
+              fields: [...currentFields, newField]
+          }
+
+          const newState = { ...state, visibleFields: updatedFields, headerOrder: updatedHeaderOrder, data: newData }
+          debouncedSave(getStorageData(newState))
+
+          return {
+            visibleFields: updatedFields,
+            headerOrder: updatedHeaderOrder,
+            data: newData
+          }
+        })
+      },
+
+      updateFieldType: (fieldId, type) => {
+        set((state) => {
+          const updatedFields = state.visibleFields.map((field) => (field.id === fieldId ? { ...field, type } : field))
+          
+          // 更新 data.fields
+          const currentFields = state.data.fields || state.visibleFields || []
+          const newData = {
+              ...state.data,
+              fields: currentFields.map(f => f.id === fieldId ? {...f, type} : f)
+          }
+          
+          const newState = { ...state, visibleFields: updatedFields, data: newData }
+          debouncedSave(getStorageData(newState))
+
+          return { visibleFields: updatedFields, data: newData }
+        })
+      },
+
+      updateField: (fieldId, updates) => {
+        set((state) => {
+          const updatedFields = state.visibleFields.map((field) => (field.id === fieldId ? { ...field, ...updates } : field))
+          
+          // 更新 data.fields
+          const currentFields = state.data.fields || state.visibleFields || []
+          const newData = {
+              ...state.data,
+              fields: currentFields.map(f => f.id === fieldId ? {...f, ...updates} : f)
+          }
+          
+          const newState = { ...state, visibleFields: updatedFields, data: newData }
+          debouncedSave(getStorageData(newState))
+
+          return { visibleFields: updatedFields, data: newData }
+        })
+      },
+
+      deleteField: (fieldId) => {
+          set((state) => {
+              // 不能删除系统字段
+              const field = state.visibleFields.find(f => f.id === fieldId)
+              if (field && field.system) {
+                  return state
+              }
+
+              const updatedFields = state.visibleFields.filter(f => f.id !== fieldId)
+              const updatedHeaderOrder = state.headerOrder.filter(id => id !== fieldId)
+              
+              const currentFields = state.data.fields || state.visibleFields || []
+              const newData = {
+                  ...state.data,
+                  fields: currentFields.filter(f => f.id !== fieldId)
+              }
+              
+              const newState = { ...state, visibleFields: updatedFields, headerOrder: updatedHeaderOrder, data: newData }
+              debouncedSave(getStorageData(newState))
+
+              return {
+                  visibleFields: updatedFields,
+                  headerOrder: updatedHeaderOrder,
+                  data: newData
+              }
+          })
+      },
+
+      updateTaskCustomField: (taskId, fieldId, value) => {
+        set((state) => {
+          const newData = JSON.parse(JSON.stringify(state.data))
+
+          for (const group of newData.priorityGroups) {
+            const taskIndex = group.tasks.findIndex((task: Task) => task.id === taskId)
+            if (taskIndex !== -1) {
+              if (!group.tasks[taskIndex].customFields) {
+                group.tasks[taskIndex].customFields = {}
+              }
+              group.tasks[taskIndex].customFields[fieldId] = {
+                type: state.visibleFields.find((f) => f.id === fieldId)?.type || "Text",
+                value: value,
+              }
+              // 同时更新 fields 属性
+              if (!group.tasks[taskIndex].fields) {
+                  group.tasks[taskIndex].fields = {}
+              }
+              group.tasks[taskIndex].fields[fieldId] = value
+              
+              break
+            }
+          }
+
+          const filtered = filterData(newData, state.searchQuery, state.filterConfig)
+          
+          debouncedSave(getStorageData({ ...state, data: newData }))
+          
+          return {
+            data: newData,
+            filteredData: filtered,
+          }
+        })
+      },
+
+      applyTemplateDefaults: (defaults) => {
+        const { visibleFields, headerOrder, table, filter } = defaults
+        set((state) => {
+            let newState = { ...state }
+            if (visibleFields && visibleFields.length) {
+              newState.visibleFields = visibleFields
+              newState.data = { ...newState.data, fields: visibleFields }
+            }
+            if (headerOrder && headerOrder.length) {
+              newState.headerOrder = headerOrder
+            }
+            if (table?.groupBy) {
+              newState.groupBy = table.groupBy
+            }
+            if (table?.sortBy) {
+               newState.sortConfig = { field: table.sortBy, direction: state.sortConfig.direction, isActive: true }
+            }
+            if (filter) {
+               newState.filterConfig = { ...state.filterConfig, ...filter, isActive: true }
+            }
+            if (table?.rowHeight !== undefined || table?.headerDraggable !== undefined) {
+               newState.viewConfig = { ...newState.viewConfig }
+               if (table?.rowHeight !== undefined) newState.viewConfig.rowHeight = table.rowHeight!
+               if (table?.headerDraggable !== undefined) newState.viewConfig.headerDraggable = !!table.headerDraggable
+            }
+            
+            // Apply side effects like sorting/filtering after state update
+            // But here we just return new state
+            debouncedSave(getStorageData(newState))
+            return newState
+        })
+        
+        // Trigger re-calculations
+        if (defaults.table?.sortBy) get().applySorting()
+        if (defaults.filter) get().applyFilters()
+        if (defaults.table?.groupBy) {
             const regroupedData = get().regroupData()
             set({ filteredData: regroupedData })
-          },
+        }
+      },
 
-          // 可见字段
-          visibleFields: initialVisibleFields,
-
-          // 表头顺序
-          headerOrder: initialVisibleFields.filter((f) => f.visible).map((f) => f.id),
-
-          setHeaderOrder: (order) => {
-            set({ headerOrder: order })
-          },
-
-          reorderHeaders: (oldIndex, newIndex) => {
-            set((state) => {
-              const items = Array.from(state.headerOrder)
-              const [reorderedItem] = items.splice(oldIndex, 1)
-              items.splice(newIndex, 0, reorderedItem)
-
-              return { headerOrder: items }
-            })
-          },
-
-          setVisibleFields: (fields) => {
-            set({ visibleFields: fields })
-          },
-
-          setSearchQuery: (query: string) => {
-            set((state) => {
-              const filtered = filterData(state.data, query, state.filterConfig)
-              return {
-                searchQuery: query,
-                filteredData: filtered,
-              }
-            })
-          },
-
-          filteredData: initialData,
-
-          addTask: (task: Task) => {
-            set((state) => {
-              const newData = { ...state.data }
-              const targetGroupId = task.priority
-              const groupIndex = newData.priorityGroups.findIndex((group) => group.id === targetGroupId)
-
-              if (groupIndex !== -1) {
-                newData.priorityGroups[groupIndex].tasks = [...newData.priorityGroups[groupIndex].tasks, task]
-              } else if (newData.priorityGroups.length > 0) {
-                newData.priorityGroups[0].tasks = [...newData.priorityGroups[0].tasks, task]
-              }
-
-              const filtered = filterData(newData, state.searchQuery, state.filterConfig)
-              return {
-                data: newData,
-                filteredData: filtered,
-              }
-            })
-          },
-
-          // 添加 addMultipleTasks 方法到 useTaskStore 中
-          // 在 addTask 方法后添加以下代码:
-
-          // 批量添加任务
-          addMultipleTasks: (tasks: Task[]) => {
-            set((state) => {
-              const newState = { ...state }
-
-              // 为每个任务分配到对应的优先级组
-              tasks.forEach((task) => {
-                const priorityGroup = newState.data.priorityGroups.find((group) => group.id === task.priority)
-
-                if (priorityGroup) {
-                  // 确保任务ID唯一
-                  if (!task.id || newState.data.priorityGroups.some((g) => g.tasks.some((t) => t.id === task.id))) {
-                    task.id = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-                  }
-
-                  priorityGroup.tasks.push(task)
-                }
-              })
-
-              // 应用过滤和排序
-              applyFiltersAndSort(newState)
-
-              return newState
-            })
-          },
-
-          updateTask: (taskId: string, updates: Partial<Task>) => {
-            set((state) => {
-              const newData = JSON.parse(JSON.stringify(state.data))
-
-              for (const group of newData.priorityGroups) {
-                const taskIndex = group.tasks.findIndex((task: Task) => task.id === taskId)
-                if (taskIndex !== -1) {
-                  group.tasks[taskIndex] = { ...group.tasks[taskIndex], ...updates }
-                  break
-                }
-              }
-
-              const filtered = filterData(newData, state.searchQuery, state.filterConfig)
-              return {
-                data: newData,
-                filteredData: filtered,
-              }
-            })
-          },
-
-          // 添加用户顺序字段
-          userOrder: [],
-
-          setUserOrder: (userIds: string[]) => {
-            set({ userOrder: userIds })
-          },
-
-          deleteUser: (userId: string) => {
-            set((state) => {
-              const newData = JSON.parse(JSON.stringify(state.data))
-
-              // 从每个优先级组中移除该用户的任务
-              for (const group of newData.priorityGroups) {
-                group.tasks = group.tasks.filter((task: Task) => task.assignee.id !== userId)
-              }
-
-              // 更新用户顺序
-              const newUserOrder = state.userOrder.filter((id) => id !== userId)
-
-              const filtered = filterData(newData, state.searchQuery, state.filterConfig)
-              return {
-                data: newData,
-                filteredData: filtered,
-                userOrder: newUserOrder,
-              }
-            })
-          },
-
-          reorderUsers: (oldIndex: number, newIndex: number) => {
-            set((state) => {
-              const newUserOrder = [...state.userOrder]
-              const [removed] = newUserOrder.splice(oldIndex, 1)
-              newUserOrder.splice(newIndex, 0, removed)
-
-              return { userOrder: newUserOrder }
-            })
-          },
-
-          getSortedUsers: () => {
-            const state = get()
-            const allUsers = Array.from(
-                new Map(
-                    state.data.priorityGroups.flatMap((group) => group.tasks).map((task) => [task.assignee.id, task.assignee]),
-                ).values(),
-            )
-
-            // 如果有存储的用户顺序，按照该顺序排序
-            if (state.userOrder.length > 0) {
-              // 创建一个映射以加快查询速度
-              const userMap = new Map(allUsers.map((user) => [user.id, user]))
-
-              // 按存储的顺序排序，并添加那些可能不在顺序中但存在的用户
-              const orderedUsers = [
-                ...state.userOrder.filter((id) => userMap.has(id)).map((id) => userMap.get(id)!),
-                ...allUsers.filter((user) => !state.userOrder.includes(user.id)),
-              ]
-
-              return orderedUsers
+      applyViewConfigFromTemplate: (view) => {
+        set((state) => {
+            let newState = { ...state }
+            
+            if (view.groupBy) {
+              newState.groupBy = view.groupBy
             }
-
-            // 如果没有存储的顺序，返回原始用户列表
-            return allUsers
-          },
-
-          addUser: (user: User) => {
-            set((state) => {
-              // 检查用户是否已存在
-              const existingUsers = state.data.priorityGroups
-                  .flatMap((group) => group.tasks)
-                  .map((task) => task.assignee.id)
-
-              if (existingUsers.includes(user.id)) {
-                return state // 用户已存在，不做更改
+            if (view.sort) {
+              const { field, direction, isActive } = view.sort
+              newState.sortConfig = {
+                field: field ?? null,
+                direction: direction ?? state.sortConfig.direction,
+                isActive: isActive ?? !!field,
               }
-
-              // 创建一个空任务来确保用户显示在列表中
-              const emptyTask: Task = {
-                id: `empty-task-${Date.now()}-${user.id}`,
-                description: "欢迎使用任务管理系统",
-                summary: "这是一个示例任务，您可以添加更多任务或删除此任务。",
-                assignee: user,
-                status: "待开始",
-                startDate: new Date().toISOString().split("T")[0].replace(/-/g, "/"),
-                expectedEndDate: undefined,
-                actualEndDate: undefined,
-                isDelayed: false,
-                completed: false,
-                priority: "重要紧急",
-              }
-
-              // 找到对应的优先级组
-              const newData = { ...state.data }
-              const groupIndex = newData.priorityGroups.findIndex((group) => group.id === "重要紧急")
-
-              if (groupIndex !== -1) {
-                newData.priorityGroups[groupIndex].tasks = [...newData.priorityGroups[groupIndex].tasks, emptyTask]
-              } else if (newData.priorityGroups.length > 0) {
-                newData.priorityGroups[0].tasks = [...newData.priorityGroups[0].tasks, emptyTask]
-              }
-
-              // 将新用户添加到用户顺序中
-              const newUserOrder = [...state.userOrder, user.id]
-
-              const filtered = filterData(newData, state.searchQuery, state.filterConfig)
-              return {
-                data: newData,
-                filteredData: filtered,
-                userOrder: newUserOrder,
-              }
-            })
-          },
-
-          moveTask: (taskId: string, newStatus: Task["status"]) => {
-            set((state) => {
-              const newData = JSON.parse(JSON.stringify(state.data))
-              let taskToUpdate: Task | null = null
-              let taskGroup: PriorityGroup | null = null
-              let taskIndex = -1
-
-              // 找到要移动的任务
-              for (const group of newData.priorityGroups) {
-                const index = group.tasks.findIndex((task: Task) => task.id === taskId)
-                if (index !== -1) {
-                  taskToUpdate = { ...group.tasks[index] }
-                  taskGroup = group
-                  taskIndex = index
-                  break
-                }
-              }
-
-              if (taskToUpdate && taskGroup) {
-                // 更新任务状态
-                taskToUpdate.status = newStatus
-
-                // 如果移动到"已完成"状态，自动设置completed为true
-                if (newStatus === "已完成") {
-                  taskToUpdate.completed = true
-                  taskToUpdate.actualEndDate = new Date().toISOString().split("T")[0].replace(/-/g, "/")
-                } else if (taskToUpdate.status === "已完成") {
-                  // 如果从"已完成"移出，设置completed为false
-                  taskToUpdate.completed = false
-                  taskToUpdate.actualEndDate = undefined
-                }
-
-                // 更新任务
-                taskGroup.tasks[taskIndex] = taskToUpdate
-              }
-
-              const filtered = filterData(newData, state.searchQuery, state.filterConfig)
-              return {
-                data: newData,
-                filteredData: filtered,
-              }
-            })
-          },
-
-          // 修改reorderTasks方法以支持跨优先级组拖拽
-          reorderTasks: (priorityGroupId: string, oldIndex: number, newIndex: number, targetGroupId?: string) => {
-            set((state) => {
-              const newData = JSON.parse(JSON.stringify(state.data))
-
-              // 找到源组和目标组
-              const sourceGroupIndex = newData.priorityGroups.findIndex((group) => group.id === priorityGroupId)
-
-              // 如果没有找到源组，直接返回
-              if (sourceGroupIndex === -1) return state
-
-              // 获取要移动的任务
-              const [taskToMove] = newData.priorityGroups[sourceGroupIndex].tasks.splice(oldIndex, 1)
-
-              // 如果有目标组ID且与源组不同（跨优先级拖拽）
-              if (targetGroupId && targetGroupId !== priorityGroupId) {
-                // 更新任务的优先级
-                taskToMove.priority = targetGroupId
-
-                // 找到目标组并插入任务
-                const targetGroupIndex = newData.priorityGroups.findIndex((group) => group.id === targetGroupId)
-
-                if (targetGroupIndex !== -1) {
-                  // 确保不会越界
-                  const insertAt = Math.min(newIndex, newData.priorityGroups[targetGroupIndex].tasks.length)
-                  newData.priorityGroups[targetGroupIndex].tasks.splice(insertAt, 0, taskToMove)
-                } else {
-                  // 如果找不到目标组，把任务放回原组
-                  newData.priorityGroups[sourceGroupIndex].tasks.splice(oldIndex, 0, taskToMove)
-                }
-              } else {
-                // 同一组内拖拽，直接插入
-                newData.priorityGroups[sourceGroupIndex].tasks.splice(newIndex, 0, taskToMove)
-              }
-
-              const filtered = filterData(newData, state.searchQuery, state.filterConfig)
-              return {
-                data: newData,
-                filteredData: filtered,
-              }
-            })
-          },
-
-          // 应用筛选
-          applyFilters: () => {
-            set((state) => {
-              const filteredData = filterData(state.data, state.searchQuery, state.filterConfig)
-              return { filteredData }
-            })
-          },
-
-          // 应用排序
-          applySorting: () => {
-            set((state) => {
-              const sortedData = JSON.parse(JSON.stringify(state.filteredData))
-
-              if (state.sortConfig.isActive && state.sortConfig.field) {
-                for (const group of sortedData.priorityGroups) {
-                  group.tasks = sortTasks(group.tasks, state.sortConfig.field!, state.sortConfig.direction)
-                }
-              }
-
-              return { filteredData: sortedData }
-            })
-          },
-
-          // 重新分组数据
-          regroupData: () => {
-            const { data, groupBy, searchQuery, filterConfig } = get()
-
-            // 如果按优先级分组（默认行为）
-            if (groupBy === "priority") {
-              return filterData(data, searchQuery, filterConfig)
             }
-
-            // 获取所有任务
-            const allTasks = data.priorityGroups.flatMap((group) => group.tasks)
-
-            // 根据选择的字段进行分组
-            const groupedTasks: Record<string, Task[]> = {}
-
-            allTasks.forEach((task) => {
-              let groupKey = ""
-
-              switch (groupBy) {
-                case "status":
-                  groupKey = task.status
-                  break
-                case "assignee":
-                  groupKey = task.assignee.name
-                  break
-                case "completed":
-                  groupKey = task.completed ? "已完成" : "进行中"
-                  break
-                default:
-                  groupKey = task.priority
-              }
-
-              if (!groupedTasks[groupKey]) {
-                groupedTasks[groupKey] = []
-              }
-
-              groupedTasks[groupKey].push(task)
-            })
-
-            // 创建新的分组结构
-            const newGroups: PriorityGroup[] = Object.keys(groupedTasks).map((key) => ({
-              id: key,
-              name: key,
-              tasks: groupedTasks[key],
-            }))
-
-            // 创建新的数据结构
-            const newData: TaskData = {
-              ...data,
-              priorityGroups: newGroups,
+            if (view.filter) {
+              newState.filterConfig = { ...state.filterConfig, ...view.filter, isActive: true }
             }
+            if (view.rowHeight !== undefined || view.headerDraggable !== undefined) {
+               newState.viewConfig = { ...newState.viewConfig }
+               if (view.rowHeight !== undefined) newState.viewConfig.rowHeight = view.rowHeight!
+               if (view.headerDraggable !== undefined) newState.viewConfig.headerDraggable = !!view.headerDraggable
+            }
+            
+            debouncedSave(getStorageData(newState))
+            return newState
+        })
 
-            return filterData(newData, searchQuery, filterConfig)
-          },
+        // Trigger side effects
+        if (view.groupBy) {
+             const regroupedData = get().regroupData()
+             set({ filteredData: regroupedData })
+        }
+        if (view.sort) get().applySorting()
+        if (view.filter) get().applyFilters()
+      },
 
-          // 更新列宽的方法
-          updateFieldWidth: (fieldId: string, width: number) => {
-            set((state) => {
-              // 确保宽度不小于最小值
-              const safeWidth = Math.max(80, width)
+      saveCurrentView: (name) => {
+        const id = `view-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+        set((state) => {
+            const config = {
+              groupBy: state.groupBy,
+              sort: { ...state.sortConfig },
+              filter: { ...state.filterConfig },
+              rowHeight: state.viewConfig.rowHeight,
+              headerDraggable: state.viewConfig.headerDraggable,
+            }
+            const newViews = [...state.views, { id, name, config }]
+            const newState = { ...state, views: newViews }
+            debouncedSave(getStorageData(newState))
+            return { views: newViews }
+        })
+        return id
+      },
 
-              // 更新字段宽度
-              const updatedFields = state.visibleFields.map((field) =>
-                  field.id === fieldId ? { ...field, width: safeWidth } : field,
-              )
+      applySavedView: (id) => {
+        const view = get().views.find((v) => v.id === id)
+        if (!view) return
+        get().applyViewConfigFromTemplate(view.config)
+      },
 
-              return { visibleFields: updatedFields }
-            })
-          },
+      renameView: (id, name) => {
+        set((state) => {
+            const newViews = state.views.map((v) => (v.id === id ? { ...v, name } : v))
+            const newState = { ...state, views: newViews }
+            debouncedSave(getStorageData(newState))
+            return { views: newViews }
+        })
+      },
 
-          addField: (field) => {
-            set((state) => {
-              // 检查字段ID是否已存在
-              if (state.visibleFields.some((f) => f.id === field.id)) {
-                return state
-              }
+      deleteView: (id) => {
+        set((state) => {
+          const newViews = state.views.filter((v) => v.id !== id)
+          const newDefaultId = state.defaultViewId === id ? null : state.defaultViewId
+          
+          const newState = { ...state, views: newViews, defaultViewId: newDefaultId }
+          debouncedSave(getStorageData(newState))
+          
+          return {
+            views: newViews,
+            defaultViewId: newDefaultId,
+          }
+        })
+      },
 
-              // 创建新字段配置
-              const newField = {
-                id: field.id,
-                name: field.name,
-                visible: true,
-                width: 150, // 默认宽度
-                type: field.type,
-                options: field.options,
-              }
-
-              // 更新字段列表
-              const updatedFields = [...state.visibleFields, newField]
-
-              // 更新表头顺序
-              const updatedHeaderOrder = [...state.headerOrder, field.id]
-
-              return {
-                visibleFields: updatedFields,
-                headerOrder: updatedHeaderOrder,
-              }
-            })
-          },
-
-          updateFieldType: (fieldId, type) => {
-            set((state) => {
-              const updatedFields = state.visibleFields.map((field) => (field.id === fieldId ? { ...field, type } : field))
-
-              return { visibleFields: updatedFields }
-            })
-          },
-
-          updateTaskCustomField: (taskId, fieldId, value) => {
-            set((state) => {
-              const newData = JSON.parse(JSON.stringify(state.data))
-
-              // 查找并更新任务
-              for (const group of newData.priorityGroups) {
-                const taskIndex = group.tasks.findIndex((task) => task.id === taskId)
-                if (taskIndex !== -1) {
-                  // 确保customFields存在
-                  if (!group.tasks[taskIndex].customFields) {
-                    group.tasks[taskIndex].customFields = {}
-                  }
-
-                  // 更新自定义字段值
-                  group.tasks[taskIndex].customFields[fieldId] = {
-                    type: state.visibleFields.find((f) => f.id === fieldId)?.type || "文本",
-                    value: value,
-                  }
-                  break
-                }
-              }
-
-              const filtered = filterData(newData, state.searchQuery, state.filterConfig)
-              return {
-                data: newData,
-                filteredData: filtered,
-              }
-            })
-          },
-        }),
-        {
-          name: "task-management-storage",
-          partialize: (state) => ({
-            data: state.data,
-            viewConfig: state.viewConfig,
-            filterConfig: state.filterConfig,
-            sortConfig: state.sortConfig,
-            groupBy: state.groupBy,
-            visibleFields: state.visibleFields,
-            userOrder: state.userOrder,
-            headerOrder: state.headerOrder,
-          }),
-        },
-    ),
+      setDefaultView: (id) => {
+        const exists = get().views.some((v) => v.id === id)
+        if (!exists) return
+        set((state) => {
+            const newState = { ...state, defaultViewId: id }
+            debouncedSave(getStorageData(newState))
+            return { defaultViewId: id }
+        })
+      },
+    }),
+    {
+      name: "task-management-storage",
+      partialize: (state) => ({
+        data: state.data,
+        viewConfig: state.viewConfig,
+        filterConfig: state.filterConfig,
+        sortConfig: state.sortConfig,
+        groupBy: state.groupBy,
+        visibleFields: state.visibleFields,
+        userOrder: state.userOrder,
+        headerOrder: state.headerOrder,
+        ganttConfig: state.ganttConfig,
+        views: state.views,
+        defaultViewId: state.defaultViewId,
+      }),
+    }
+  ),
 )
 
 // 筛选数据函数
@@ -633,15 +981,15 @@ function filterData(data: TaskData, query: string, filterConfig: FilterConfig): 
   const lowerQuery = query.toLowerCase()
 
   // 应用搜索查询
-  filteredData.priorityGroups = filteredData.priorityGroups.map((group) => ({
+  filteredData.priorityGroups = filteredData.priorityGroups.map((group: PriorityGroup) => ({
     ...group,
     tasks: group.tasks.filter(
-        (task) =>
-            task.description.toLowerCase().includes(lowerQuery) ||
-            task.assignee.name.toLowerCase().includes(lowerQuery) ||
-            task.summary.toLowerCase().includes(lowerQuery) ||
-            task.status.toLowerCase().includes(lowerQuery) ||
-            task.priority.toLowerCase().includes(lowerQuery),
+      (task: Task) =>
+        (task.description || "").toLowerCase().includes(lowerQuery) ||
+        (task.assignee?.name || "").toLowerCase().includes(lowerQuery) ||
+        (task.summary || "").toLowerCase().includes(lowerQuery) ||
+        (task.status || "").toLowerCase().includes(lowerQuery) ||
+        (task.priority || "").toLowerCase().includes(lowerQuery),
     ),
   }))
 
@@ -651,9 +999,9 @@ function filterData(data: TaskData, query: string, filterConfig: FilterConfig): 
   }
 
   // 应用筛选条件
-  filteredData.priorityGroups = filteredData.priorityGroups.map((group) => ({
+  filteredData.priorityGroups = filteredData.priorityGroups.map((group: PriorityGroup) => ({
     ...group,
-    tasks: group.tasks.filter((task) => {
+    tasks: group.tasks.filter((task: Task) => {
       // 状态筛选
       if (filterConfig.status && task.status !== filterConfig.status) {
         return false
@@ -665,12 +1013,12 @@ function filterData(data: TaskData, query: string, filterConfig: FilterConfig): 
       }
 
       // 执行人筛选
-      if (filterConfig.assignee && task.assignee.id !== filterConfig.assignee) {
+      if (filterConfig.assignee && task.assignee?.id !== filterConfig.assignee) {
         return false
       }
 
       // 日期范围筛选
-      if (filterConfig.dateRange) {
+      if (filterConfig.dateRange && task.startDate) {
         const taskDate = new Date(task.startDate.replace(/\//g, "-"))
         const startDate = filterConfig.dateRange.start ? new Date(filterConfig.dateRange.start) : null
         const endDate = filterConfig.dateRange.end ? new Date(filterConfig.dateRange.end) : null
@@ -699,20 +1047,20 @@ function sortTasks(tasks: Task[], field: string, direction: "asc" | "desc"): Tas
     // 根据字段获取值
     switch (field) {
       case "description":
-        valueA = a.description
-        valueB = b.description
+        valueA = a.description || ""
+        valueB = b.description || ""
         break
       case "assignee":
-        valueA = a.assignee.name
-        valueB = b.assignee.name
+        valueA = a.assignee?.name || ""
+        valueB = b.assignee?.name || ""
         break
       case "status":
-        valueA = a.status
-        valueB = b.status
+        valueA = a.status || ""
+        valueB = b.status || ""
         break
       case "startDate":
-        valueA = new Date(a.startDate.replace(/\//g, "-")).getTime()
-        valueB = new Date(b.startDate.replace(/\//g, "-")).getTime()
+        valueA = a.startDate ? new Date(a.startDate.replace(/\//g, "-")).getTime() : 0
+        valueB = b.startDate ? new Date(b.startDate.replace(/\//g, "-")).getTime() : 0
         break
       case "expectedEndDate":
         valueA = a.expectedEndDate
@@ -731,13 +1079,13 @@ function sortTasks(tasks: Task[], field: string, direction: "asc" | "desc"): Tas
         valueB = b.completed ? 1 : 0
         break
       default:
-        // 处理自定义字段
+        // 处理自定义字段 - 优先尝试从 customFields 获取，然后从 fields 获取，最后尝试直接属性
         if (field.startsWith("custom_")) {
-          valueA = a.customFields?.[field]?.value || ""
-          valueB = b.customFields?.[field]?.value || ""
+          valueA = a.customFields?.[field]?.value || a.fields?.[field] || ""
+          valueB = b.customFields?.[field]?.value || b.fields?.[field] || ""
         } else {
-          valueA = (a as any)[field] || ""
-          valueB = (b as any)[field] || ""
+          valueA = (a as any)[field] || a.fields?.[field] || ""
+          valueB = (b as any)[field] || b.fields?.[field] || ""
         }
     }
 

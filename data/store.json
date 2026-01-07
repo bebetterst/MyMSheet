@@ -1,0 +1,572 @@
+{
+  "data": {
+    "fields": [
+      {
+        "id": "description",
+        "name": "任务描述",
+        "visible": true,
+        "width": 240,
+        "type": "Text",
+        "system": true
+      },
+      {
+        "id": "summary",
+        "name": "任务情况总结",
+        "visible": true,
+        "width": 240,
+        "type": "Text",
+        "system": true
+      },
+      {
+        "id": "assignee",
+        "name": "任务执行人",
+        "visible": true,
+        "width": 120,
+        "type": "User",
+        "system": true
+      },
+      {
+        "id": "status",
+        "name": "进展状态",
+        "visible": true,
+        "width": 100,
+        "type": "Select",
+        "system": true,
+        "options": [
+          "待开始",
+          "进行中",
+          "已完成",
+          "已暂停"
+        ]
+      },
+      {
+        "id": "priority",
+        "name": "优先级",
+        "visible": true,
+        "width": 100,
+        "type": "Select",
+        "system": true,
+        "options": [
+          "重要紧急",
+          "紧急不重要",
+          "重要不紧急",
+          "不重要不紧急"
+        ]
+      },
+      {
+        "id": "startDate",
+        "name": "开始日期",
+        "visible": true,
+        "width": 120,
+        "type": "Date",
+        "system": true
+      },
+      {
+        "id": "expectedEndDate",
+        "name": "预计完成日期",
+        "visible": true,
+        "width": 120,
+        "type": "Date",
+        "system": true
+      },
+      {
+        "id": "isDelayed",
+        "name": "是否延期",
+        "visible": true,
+        "width": 100,
+        "type": "Checkbox",
+        "system": true
+      },
+      {
+        "id": "actualEndDate",
+        "name": "实际完成日期",
+        "visible": true,
+        "width": 120,
+        "type": "Date",
+        "system": true
+      },
+      {
+        "id": "completed",
+        "name": "最终状态",
+        "visible": true,
+        "width": 100,
+        "type": "Checkbox",
+        "system": true
+      }
+    ],
+    "priorityGroups": [
+      {
+        "id": "重要紧急",
+        "name": "重要紧急",
+        "tasks": [
+          {
+            "id": "1",
+            "fields": {
+              "custom_1767666645347_进度": 56,
+              "custom_1767666555745_评分": 3
+            },
+            "description": "完成年度财务报表",
+            "summary": "1. 任务执行人于小宇正在进行年度财务报告的制作，已经收集了所有必要的财务数据。\n2. 由于某些原因，任务已经被延期。\n3. 预计下周完成初稿。",
+            "assignee": {
+              "id": "zhoubeihe",
+              "name": "周北北"
+            },
+            "status": "进行中",
+            "startDate": "2024/11/18",
+            "expectedEndDate": "2025/11/01",
+            "isDelayed": false,
+            "completed": true,
+            "priority": "重要紧急",
+            "customFields": {
+              "custom_1767666645347_进度": {
+                "type": "Progress",
+                "value": 56
+              },
+              "custom_1767666555745_评分": {
+                "type": "Rating",
+                "value": 3
+              }
+            },
+            "actualEndDate": ""
+          },
+          {
+            "id": "2",
+            "fields": {
+              "custom_1767666555745_评分": 3,
+              "custom_1767666645347_进度": 22
+            },
+            "description": "组织年度员工团建活动",
+            "summary": "团建活动计划已完成，包括场地预订、活动安排和预算分配。",
+            "assignee": {
+              "id": "zhoubeihe",
+              "name": "周北北"
+            },
+            "status": "已完成",
+            "startDate": "2024/11/08",
+            "expectedEndDate": "2025/12/26",
+            "actualEndDate": "2024/11/16",
+            "isDelayed": false,
+            "completed": false,
+            "priority": "重要紧急",
+            "dependencies": [
+              "1"
+            ],
+            "customFields": {
+              "custom_1767666555745_评分": {
+                "type": "Rating",
+                "value": 3
+              },
+              "custom_1767666645347_进度": {
+                "type": "Progress",
+                "value": 22
+              }
+            }
+          },
+          {
+            "id": "3",
+            "fields": {
+              "custom_1767666555745_评分": 2,
+              "custom_1767666645347_进度": 41
+            },
+            "description": "更新公司网站",
+            "summary": "网站更新内容已确定，包括新产品信息、团队介绍和客户案例。",
+            "assignee": {
+              "id": "huangpaopu",
+              "name": "黄泡泡"
+            },
+            "status": "进行中",
+            "startDate": "2024/12/01",
+            "isDelayed": false,
+            "completed": false,
+            "priority": "重要紧急",
+            "expectedEndDate": "2025/12/31",
+            "customFields": {
+              "custom_1767666555745_评分": {
+                "type": "Rating",
+                "value": 2
+              },
+              "custom_1767666645347_进度": {
+                "type": "Progress",
+                "value": 41
+              }
+            }
+          },
+          {
+            "id": "4",
+            "fields": {
+              "custom_1767666645347_进度": 38,
+              "custom_1767666555745_评分": 4
+            },
+            "description": "招聘新员工",
+            "summary": "已发布招聘信息，正在筛选简历和安排面试。",
+            "assignee": {
+              "id": "zhoubeihe",
+              "name": "周北北"
+            },
+            "status": "进行中",
+            "startDate": "2024/11/27",
+            "expectedEndDate": "2025/11/20",
+            "isDelayed": false,
+            "completed": false,
+            "priority": "重要紧急",
+            "customFields": {
+              "custom_1767666645347_进度": {
+                "type": "Progress",
+                "value": 38
+              },
+              "custom_1767666555745_评分": {
+                "type": "Rating",
+                "value": 4
+              }
+            }
+          },
+          {
+            "id": "task-1767678794644",
+            "description": "系统总体测试",
+            "summary": "近期准备开始测试",
+            "assignee": {
+              "id": "zhoubeihe",
+              "name": "周北北"
+            },
+            "status": "待开始",
+            "startDate": "2026/01/06",
+            "expectedEndDate": "2026/01/31",
+            "isDelayed": false,
+            "completed": false,
+            "priority": "重要紧急",
+            "customFields": {
+              "custom_1767666645347_进度": {
+                "type": "Progress",
+                "value": 46
+              },
+              "custom_1767666555745_评分": {
+                "type": "Rating",
+                "value": 2
+              }
+            },
+            "fields": {
+              "custom_1767666645347_进度": 46,
+              "custom_1767666555745_评分": 2
+            }
+          }
+        ]
+      },
+      {
+        "id": "紧急不重要",
+        "name": "紧急不重要",
+        "tasks": [
+          {
+            "id": "5",
+            "fields": {
+              "custom_1767666645347_进度": 51,
+              "custom_1767666555745_评分": 3
+            },
+            "description": "开发新产品",
+            "summary": "产品需求已确定，正在进行原型设计和功能规划。",
+            "assignee": {
+              "id": "huangpaopu",
+              "name": "黄泡泡"
+            },
+            "status": "进行中",
+            "startDate": "2024/12/03",
+            "expectedEndDate": "2025/10/01",
+            "isDelayed": false,
+            "completed": true,
+            "priority": "紧急不重要",
+            "customFields": {
+              "custom_1767666645347_进度": {
+                "type": "Progress",
+                "value": 51
+              },
+              "custom_1767666555745_评分": {
+                "type": "Rating",
+                "value": 3
+              }
+            },
+            "actualEndDate": "2026/01/07"
+          },
+          {
+            "id": "6",
+            "fields": {
+              "custom_1767666645347_进度": 54,
+              "custom_1767666555745_评分": 4
+            },
+            "description": "进行客户满意度调查",
+            "summary": "调查问卷已设计完成，准备发送给客户。",
+            "assignee": {
+              "id": "liubeila",
+              "name": "刘贝拉"
+            },
+            "status": "待开始",
+            "startDate": "2024/11/30",
+            "isDelayed": false,
+            "completed": false,
+            "priority": "紧急不重要",
+            "customFields": {
+              "custom_1767666645347_进度": {
+                "type": "Progress",
+                "value": 54
+              },
+              "custom_1767666555745_评分": {
+                "type": "Rating",
+                "value": 4
+              }
+            },
+            "expectedEndDate": "2025/03/31",
+            "dependencies": [
+              "4"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "重要不紧急",
+        "name": "重要不紧急",
+        "tasks": [
+          {
+            "id": "7",
+            "fields": {
+              "custom_1767666645347_进度": 47,
+              "custom_1767666555745_评分": 5
+            },
+            "description": "优化供应链管理",
+            "summary": "正在分析当前供应链流程，识别优化点和改进方案。",
+            "assignee": {
+              "id": "huangpaopu",
+              "name": "黄泡泡"
+            },
+            "status": "已暂停",
+            "startDate": "2024/11/29",
+            "isDelayed": false,
+            "completed": false,
+            "priority": "重要不紧急",
+            "expectedEndDate": "2025/08/31",
+            "customFields": {
+              "custom_1767666645347_进度": {
+                "type": "Progress",
+                "value": 47
+              },
+              "custom_1767666555745_评分": {
+                "type": "Rating",
+                "value": 5
+              }
+            }
+          },
+          {
+            "id": "8",
+            "fields": {
+              "custom_1767666645347_进度": 69,
+              "custom_1767666555745_评分": 5
+            },
+            "description": "改善工作环境",
+            "summary": "收集员工反馈，制定办公环境改善计划。",
+            "assignee": {
+              "id": "zhoubeihe",
+              "name": "周北北"
+            },
+            "status": "进行中",
+            "startDate": "2024/11/23",
+            "isDelayed": false,
+            "completed": false,
+            "priority": "重要不紧急",
+            "expectedEndDate": "2025/12/31",
+            "customFields": {
+              "custom_1767666645347_进度": {
+                "type": "Progress",
+                "value": 69
+              },
+              "custom_1767666555745_评分": {
+                "type": "Rating",
+                "value": 5
+              }
+            }
+          },
+          {
+            "id": "9",
+            "fields": {
+              "custom_1767666645347_进度": 74,
+              "custom_1767666555745_评分": 5
+            },
+            "description": "制定新的销售策略",
+            "summary": "分析市场数据，制定针对不同客户群体的销售策略。",
+            "assignee": {
+              "id": "liubeila",
+              "name": "刘贝拉"
+            },
+            "status": "已完成",
+            "startDate": "2024/11/25",
+            "isDelayed": false,
+            "completed": false,
+            "priority": "重要不紧急",
+            "expectedEndDate": "2025/11/02",
+            "actualEndDate": "2025/11/30",
+            "customFields": {
+              "custom_1767666645347_进度": {
+                "type": "Progress",
+                "value": 74
+              },
+              "custom_1767666555745_评分": {
+                "type": "Rating",
+                "value": 5
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "viewConfig": {
+    "rowHeight": "中等",
+    "editMode": false,
+    "expandedGroups": {
+      "重要紧急": true,
+      "紧急不重要": true,
+      "重要不紧急": true
+    },
+    "expandedTasks": {
+      "1": false,
+      "2": false,
+      "3": false,
+      "5": false,
+      "7": false,
+      "8": false,
+      "task-1767678794644": false
+    },
+    "headerDraggable": false
+  },
+  "filterConfig": {
+    "status": null,
+    "priority": null,
+    "assignee": null,
+    "dateRange": null,
+    "isActive": false
+  },
+  "sortConfig": {
+    "field": null,
+    "direction": "asc",
+    "isActive": false
+  },
+  "groupBy": "priority",
+  "visibleFields": [
+    {
+      "id": "description",
+      "name": "任务描述",
+      "visible": true,
+      "width": 240,
+      "type": "文本"
+    },
+    {
+      "id": "summary",
+      "name": "任务情况总结",
+      "visible": true,
+      "width": 240,
+      "type": "文本"
+    },
+    {
+      "id": "assignee",
+      "name": "任务执行人",
+      "visible": true,
+      "width": 120,
+      "type": "单选"
+    },
+    {
+      "id": "status",
+      "name": "进展状态",
+      "visible": true,
+      "width": 100,
+      "type": "标签"
+    },
+    {
+      "id": "priority",
+      "name": "优先级",
+      "visible": true,
+      "width": 100,
+      "type": "标签"
+    },
+    {
+      "id": "startDate",
+      "name": "开始日期",
+      "visible": true,
+      "width": 120,
+      "type": "文本"
+    },
+    {
+      "id": "expectedEndDate",
+      "name": "预计完成日期",
+      "visible": true,
+      "width": 120,
+      "type": "文本"
+    },
+    {
+      "id": "isDelayed",
+      "name": "是否延期",
+      "visible": true,
+      "width": 100,
+      "type": "复选"
+    },
+    {
+      "id": "actualEndDate",
+      "name": "实际完成日期",
+      "visible": true,
+      "width": 120,
+      "type": "文本"
+    },
+    {
+      "id": "completed",
+      "name": "最终状态",
+      "visible": true,
+      "width": 100,
+      "type": "复选"
+    },
+    {
+      "id": "custom_1767666555745_评分",
+      "name": "评分",
+      "type": "Rating",
+      "width": 150,
+      "visible": true,
+      "system": false
+    },
+    {
+      "id": "custom_1767666645347_进度",
+      "name": "进度",
+      "type": "Progress",
+      "width": 150,
+      "visible": true,
+      "system": false
+    }
+  ],
+  "userOrder": [],
+  "headerOrder": [
+    "description",
+    "summary",
+    "assignee",
+    "status",
+    "completed",
+    "priority",
+    "startDate",
+    "expectedEndDate",
+    "isDelayed",
+    "actualEndDate",
+    "custom_1767666555745_评分",
+    "custom_1767666645347_进度"
+  ],
+  "ganttConfig": {
+    "fieldMapping": {
+      "title": "description",
+      "startDate": "startDate",
+      "endDate": "expectedEndDate",
+      "progress": "custom_1767666645347_进度",
+      "group": "priority",
+      "color": "status",
+      "dependencies": "dependencies"
+    },
+    "viewSettings": {
+      "timeScale": "month",
+      "showWeekend": true,
+      "showToday": false,
+      "zoomLevel": 100
+    }
+  },
+  "views": [],
+  "defaultViewId": null
+}

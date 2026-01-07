@@ -54,29 +54,32 @@ export function StatisticsView() {
 
   // 按状态统计
   const statusCounts = allTasks.reduce(
-      (acc, task) => {
-        acc[task.status] = (acc[task.status] || 0) + 1
-        return acc
-      },
-      {} as Record<string, number>,
+    (acc, task) => {
+      const status = task.status || "未知"
+      acc[status] = (acc[status] || 0) + 1
+      return acc
+    },
+    {} as Record<string, number>,
   )
 
   // 按优先级统计
   const priorityCounts = allTasks.reduce(
-      (acc, task) => {
-        acc[task.priority] = (acc[task.priority] || 0) + 1
-        return acc
-      },
-      {} as Record<string, number>,
+    (acc, task) => {
+      const priority = task.priority || "未知"
+      acc[priority] = (acc[priority] || 0) + 1
+      return acc
+    },
+    {} as Record<string, number>,
   )
 
   // 按执行人统计
   const assigneeCounts = allTasks.reduce(
-      (acc, task) => {
-        acc[task.assignee.name] = (acc[task.assignee.name] || 0) + 1
-        return acc
-      },
-      {} as Record<string, number>,
+    (acc, task) => {
+      const assigneeName = task.assignee?.name || "未分配"
+      acc[assigneeName] = (acc[assigneeName] || 0) + 1
+      return acc
+    },
+    {} as Record<string, number>,
   )
 
   // 按完成状态统计
@@ -93,7 +96,8 @@ export function StatisticsView() {
     return months.map((month, index) => {
       const monthIndex = index
       const tasksInMonth = allTasks.filter((task) => {
-        const startDate = new Date(task.startDate.replace(/\//g, "-"))
+        if (!task.startDate) return false
+        const startDate = new Date(task.startDate)
         return startDate.getMonth() === monthIndex && startDate.getFullYear() === currentYear
       })
 
@@ -455,7 +459,7 @@ export function StatisticsView() {
                   <CardContent>
                     <div className="h-80">
                       <Line
-                          data={chartData.weekly}
+                          data={chartData.weekly as any}
                           options={{
                             maintainAspectRatio: false,
                             scales: {

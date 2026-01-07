@@ -6,19 +6,40 @@ export interface User {
   department?: string
 }
 
+export type FieldType = "Text" | "Number" | "Select" | "MultiSelect" | "Date" | "User" | "Progress" | "Rating" | "Checkbox" | "RichText" | "Image" | "Tag" | "Radio"
+
+export interface FieldDefinition {
+  id: string
+  name: string
+  type: FieldType
+  width: number
+  visible: boolean
+  options?: string[] // For Select/MultiSelect
+  regex?: string // For Text validation
+  min?: number // For Number/Rating/Progress
+  max?: number // For Number/Rating/Progress
+  dateFormat?: string // For Date
+  defaultValue?: any
+  system?: boolean // If true, cannot be deleted (e.g., id, description)
+}
+
 export interface Task {
   id: string
-  description: string
-  summary: string
-  assignee: User
-  status: "待开始" | "进行中" | "已完成" | "已停滞"
-  startDate: string
+  // Dynamic fields storage
+  fields: Record<string, any>
+  // Deprecated fields kept for migration compatibility (optional)
+  description?: string
+  summary?: string
+  assignee?: User
+  status?: string
+  startDate?: string
   expectedEndDate?: string
   actualEndDate?: string
-  isDelayed: boolean
-  completed: boolean
-  priority: "重要紧急" | "紧急不重要" | "重要不紧急"
-  customFields?: Record<string, CustomFieldValue> // 新增：自定义字段
+  isDelayed?: boolean
+  completed?: boolean
+  priority?: string
+  dependencies?: string[] // 前置任务ID列表
+  customFields?: Record<string, CustomFieldValue>
 }
 
 export interface PriorityGroup {
@@ -29,18 +50,18 @@ export interface PriorityGroup {
 
 export interface TaskData {
   priorityGroups: PriorityGroup[]
+  fields: FieldDefinition[] // Store field definitions here
 }
 
-// 新增：视图配置类型
+// ... existing ViewConfig, FilterConfig, SortConfig ...
 export interface ViewConfig {
   rowHeight: "低" | "中等" | "高" | "超高"
   editMode: boolean
   expandedGroups: Record<string, boolean>
   expandedTasks: Record<string, boolean>
-  headerDraggable: boolean // 新增：控制表头是否可拖拽
+  headerDraggable: boolean
 }
 
-// 新增：筛选配置类型
 export interface FilterConfig {
   status: string | null
   priority: string | null
@@ -52,31 +73,48 @@ export interface FilterConfig {
   isActive: boolean
 }
 
-// 新增：排序配置类型
 export interface SortConfig {
   field: string | null
   direction: "asc" | "desc"
   isActive: boolean
 }
 
-// 添加字段类型定义
-export type FieldType = "文本" | "数值" | "标签" | "单选" | "复选" | "富文本" | "图片"
-
-// 扩展字段配置类型
+// Keep legacy types for backward compatibility where needed
 export interface FieldConfig {
   id: string
   name: string
   visible: boolean
-  width: number // 添加默认宽度属性
-  type: FieldType // 添加字段类型
-  options?: string[] // 用于单选和复选类型的选项
+  width: number
+  type: string
+  options?: string[]
 }
 
-// 添加自定义字段值类型
 export interface CustomFieldValue {
-  type: FieldType
+  type: string
   value: any
 }
 
 export type TaskStatus = "待开始" | "进行中" | "已完成" | "已停滞"
 export type TaskPriority = "重要紧急" | "紧急不重要" | "重要不紧急"
+
+export type TimeScale = "day" | "week" | "month" | "quarter" | "year"
+
+export interface GanttConfig {
+  // 字段映射
+  fieldMapping: {
+    title: string // 任务标题字段 ID
+    startDate: string // 开始日期字段 ID
+    endDate: string // 结束日期字段 ID
+    progress?: string // 进度字段 ID
+    group?: string // 分组字段 ID
+    color?: string // 颜色字段 ID
+    dependencies?: string // 依赖关系字段 ID
+  }
+  // 视图设置
+  viewSettings: {
+    timeScale: TimeScale
+    showWeekend: boolean
+    showToday: boolean
+    zoomLevel: number // 50 - 200 (percentage)
+  }
+}

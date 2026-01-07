@@ -1,7 +1,19 @@
-import type { TaskData } from "./types"
+import type { TaskData, FieldType } from "./types"
 import { generateTasks } from './mock'
 
 export const initialData: TaskData = {
+  fields: [
+    { id: "description", name: "任务描述", visible: true, width: 240, type: "Text", system: true },
+    { id: "summary", name: "任务情况总结", visible: true, width: 240, type: "Text", system: true },
+    { id: "assignee", name: "任务执行人", visible: true, width: 120, type: "User", system: true },
+    { id: "status", name: "进展状态", visible: true, width: 100, type: "Select", system: true, options: ["待开始", "进行中", "已完成", "已暂停"] },
+    { id: "priority", name: "优先级", visible: true, width: 100, type: "Select", system: true, options: ["重要紧急", "紧急不重要", "重要不紧急", "不重要不紧急"] },
+    { id: "startDate", name: "开始日期", visible: true, width: 120, type: "Date", system: true },
+    { id: "expectedEndDate", name: "预计完成日期", visible: true, width: 120, type: "Date", system: true },
+    { id: "isDelayed", name: "是否延期", visible: true, width: 100, type: "Checkbox", system: true },
+    { id: "actualEndDate", name: "实际完成日期", visible: true, width: 120, type: "Date", system: true },
+    { id: "completed", name: "最终状态", visible: true, width: 100, type: "Checkbox", system: true },
+  ],
   priorityGroups: [
     {
       id: "重要紧急",
@@ -9,6 +21,7 @@ export const initialData: TaskData = {
       tasks: [
         {
           id: "1",
+          fields: {},
           description: "完成年度财务报表",
           summary:
             "1. 任务执行人于小宇正在进行年度财务报告的制作，已经收集了所有必要的财务数据。\n2. 由于某些原因，任务已经被延期。\n3. 预计下周完成初稿。",
@@ -25,6 +38,7 @@ export const initialData: TaskData = {
         },
         {
           id: "2",
+          fields: {},
           description: "组织年度员工团建活动",
           summary: "团建活动计划已完成，包括场地预订、活动安排和预算分配。",
           assignee: {
@@ -38,9 +52,11 @@ export const initialData: TaskData = {
           isDelayed: false,
           completed: true,
           priority: "重要紧急",
+          dependencies: ["1"], // 依赖任务1
         },
         {
           id: "3",
+          fields: {},
           description: "更新公司网站",
           summary: "网站更新内容已确定，包括新产品信息、团队介绍和客户案例。",
           assignee: {
@@ -55,6 +71,7 @@ export const initialData: TaskData = {
         },
         {
           id: "4",
+          fields: {},
           description: "招聘新员工",
           summary: "已发布招聘信息，正在筛选简历和安排面试。",
           assignee: {
@@ -76,6 +93,7 @@ export const initialData: TaskData = {
       tasks: [
         {
           id: "5",
+          fields: {},
           description: "开发新产品",
           summary: "产品需求已确定，正在进行原型设计和功能规划。",
           assignee: {
@@ -91,6 +109,7 @@ export const initialData: TaskData = {
         },
         {
           id: "6",
+          fields: {},
           description: "进行客户满意度调查",
           summary: "调查问卷已设计完成，准备发送给客户。",
           assignee: {
@@ -111,6 +130,7 @@ export const initialData: TaskData = {
       tasks: [
         {
           id: "7",
+          fields: {},
           description: "优化供应链管理",
           summary: "正在分析当前供应链流程，识别优化点和改进方案。",
           assignee: {
@@ -125,6 +145,7 @@ export const initialData: TaskData = {
         },
         {
           id: "8",
+          fields: {},
           description: "改善工作环境",
           summary: "收集员工反馈，制定办公环境改善计划。",
           assignee: {
@@ -139,6 +160,7 @@ export const initialData: TaskData = {
         },
         {
           id: "9",
+          fields: {},
           description: "制定新的销售策略",
           summary: "分析市场数据，制定针对不同客户群体的销售策略。",
           assignee: {

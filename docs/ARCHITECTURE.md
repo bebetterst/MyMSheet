@@ -108,10 +108,9 @@
 │  ├── FilterDialog (筛选对话框)                          │
 │  ├── SortDialog (排序对话框)                            │
 │  ├── GroupByDialog (分组对话框)                         │
-│  ├── FieldConfigDialog (字段配置)                       │
+│  ├── FieldManagementDialog (字段管理)                   │
 │  ├── AddTaskDialog (添加任务)                           │
 │  ├── AddUserDialog (添加用户)                           │
-│  ├── AddFieldDialog (添加字段)                          │
 │  └── ImportTasksDialog (导入任务)                       │
 │                                                         │
 │  编辑组件/                                               │

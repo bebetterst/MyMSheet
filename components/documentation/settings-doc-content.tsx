@@ -2,7 +2,9 @@ export function SettingsDocContent() {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">设置与配置</h2>
-      <p className="text-muted-foreground">多维表格提供了丰富的配置选项，您可以根据自己的需求进行个性化设置。</p>
+      <p className="text-muted-foreground">
+        多维表格提供了丰富的配置选项，您可以根据自己的需求进行个性化设置。
+      </p>
 
       <div className="space-y-6">
         <div className="space-y-4">
@@ -61,7 +63,9 @@ export function SettingsDocContent() {
           </ul>
         </div>
 
-        <h2 className="font-semibold" style={{fontSize: 32}}>可扩展的业务场景</h2>
+        <h2 className="font-semibold" style={{ fontSize: 32 }}>
+          可扩展的业务场景
+        </h2>
         <div className="space-y-4">
           <h3 className="text-xl font-semibold">通知设置</h3>
           <p>配置任务提醒和通知：</p>
@@ -135,5 +139,5 @@ export function SettingsDocContent() {
         </div>
       </div>
     </div>
-  )
+  );
 }

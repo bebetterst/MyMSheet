@@ -13,7 +13,9 @@ export function IntroDocContent() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
           <div className="border rounded-lg p-4 bg-gray-50">
             <h4 className="font-medium text-lg">表格视图</h4>
-            <p className="text-sm text-muted-foreground mt-1">展示所有任务的详细信息，支持排序、筛选、分组等操作。</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              展示所有任务的详细信息，支持排序、筛选、分组等操作。
+            </p>
           </div>
           <div className="border rounded-lg p-4 bg-gray-50">
             <h4 className="font-medium text-lg">看板视图</h4>
@@ -29,7 +31,9 @@ export function IntroDocContent() {
           </div>
           <div className="border rounded-lg p-4 bg-gray-50">
             <h4 className="font-medium text-lg">人员分配</h4>
-            <p className="text-sm text-muted-foreground mt-1">查看团队成员的任务分配情况，合理调配人力资源。</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              查看团队成员的任务分配情况，合理调配人力资源。
+            </p>
           </div>
         </div>
       </div>
@@ -53,7 +57,9 @@ export function IntroDocContent() {
           <li>
             <div>
               <strong className="text-lg">组织任务</strong>
-              <p className="text-muted-foreground mt-1">使用分组功能按状态、优先级或负责人等维度组织任务。</p>
+              <p className="text-muted-foreground mt-1">
+                使用分组功能按状态、优先级或负责人等维度组织任务。
+              </p>
               <div className="mt-2 border rounded-md p-3 bg-gray-50">
                 <p className="text-sm">
                   <strong>提示：</strong> 点击表格顶部的"分组"按钮，选择您想要的分组维度。
@@ -95,7 +101,9 @@ export function IntroDocContent() {
             </div>
             <div className="p-3">
               <h4 className="font-medium">多维表格基础使用</h4>
-              <p className="text-sm text-muted-foreground mt-1">学习创建、编辑和管理任务的基本操作</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                学习创建、编辑和管理任务的基本操作
+              </p>
             </div>
           </div>
           <div className="border rounded-md overflow-hidden">
@@ -134,5 +142,5 @@ export function IntroDocContent() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,31 +1,44 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useTaskStore } from "@/lib/task-store"
-import type { Task } from "@/lib/types"
+import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useTaskStore } from '@/lib/task-store';
+import type { Task } from '@/lib/types';
 
 interface AddTaskDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onAddTask: (task: Partial<Task>) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onAddTask: (task: Partial<Task>) => void;
 }
 
 export function AddTaskDialog({ open, onOpenChange, onAddTask }: AddTaskDialogProps) {
-  const { data } = useTaskStore()
+  const { data } = useTaskStore();
   const [newTask, setNewTask] = useState<Partial<Task>>({
-    description: "",
-    summary: "",
-    priority: "重要紧急",
-    status: "待开始",
-    assignee: { id: "zhoubeihe", name: "周北北" },
-    startDate: new Date().toISOString().split("T")[0].replace(/-/g, "/"),
-  })
+    description: '',
+    summary: '',
+    priority: '重要紧急',
+    status: '待开始',
+    assignee: { id: 'zhoubeihe', name: '周北北' },
+    startDate: new Date().toISOString().split('T')[0].replace(/-/g, '/'),
+  });
 
   // 从所有任务中提取唯一的用户
   const users = Array.from(
@@ -34,32 +47,30 @@ export function AddTaskDialog({ open, onOpenChange, onAddTask }: AddTaskDialogPr
         .flatMap((group) => group.tasks)
         .flatMap((task) => (task.assignee ? [[task.assignee.id, task.assignee] as const] : [])),
     ).values(),
-  )
+  );
 
   const handleSubmit = () => {
     if (!newTask.description) {
-      return
+      return;
     }
-    onAddTask(newTask)
+    onAddTask(newTask);
     setNewTask({
-      description: "",
-      summary: "",
-      priority: "重要紧急",
-      status: "待开始",
-      assignee: { id: "zhoubeihe", name: "周北北" },
-      startDate: new Date().toISOString().split("T")[0].replace(/-/g, "/"),
-    })
-    onOpenChange(false)
-  }
+      description: '',
+      summary: '',
+      priority: '重要紧急',
+      status: '待开始',
+      assignee: { id: 'zhoubeihe', name: '周北北' },
+      startDate: new Date().toISOString().split('T')[0].replace(/-/g, '/'),
+    });
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>添加新任务</DialogTitle>
-          <DialogDescription className="sr-only">
-            填写以下信息以创建一个新任务。
-          </DialogDescription>
+          <DialogDescription className="sr-only">填写以下信息以创建一个新任务。</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
@@ -91,7 +102,10 @@ export function AddTaskDialog({ open, onOpenChange, onAddTask }: AddTaskDialogPr
             <Label htmlFor="task-priority" className="text-right">
               优先级
             </Label>
-            <Select value={newTask.priority} onValueChange={(value) => setNewTask({ ...newTask, priority: value })}>
+            <Select
+              value={newTask.priority}
+              onValueChange={(value) => setNewTask({ ...newTask, priority: value })}
+            >
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="选择优先级" />
               </SelectTrigger>
@@ -108,7 +122,7 @@ export function AddTaskDialog({ open, onOpenChange, onAddTask }: AddTaskDialogPr
             </Label>
             <Select
               value={newTask.status}
-              onValueChange={(value) => setNewTask({ ...newTask, status: value as Task["status"] })}
+              onValueChange={(value) => setNewTask({ ...newTask, status: value as Task['status'] })}
             >
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="选择状态" />
@@ -128,9 +142,9 @@ export function AddTaskDialog({ open, onOpenChange, onAddTask }: AddTaskDialogPr
             <Select
               value={newTask.assignee?.id}
               onValueChange={(value) => {
-                const selectedUser = users.find((user) => user.id === value)
+                const selectedUser = users.find((user) => user.id === value);
                 if (selectedUser) {
-                  setNewTask({ ...newTask, assignee: selectedUser })
+                  setNewTask({ ...newTask, assignee: selectedUser });
                 }
               }}
             >
@@ -153,8 +167,10 @@ export function AddTaskDialog({ open, onOpenChange, onAddTask }: AddTaskDialogPr
             <Input
               id="task-start-date"
               type="date"
-              value={newTask.startDate?.replace(/\//g, "-")}
-              onChange={(e) => setNewTask({ ...newTask, startDate: e.target.value.replace(/-/g, "/") })}
+              value={newTask.startDate?.replace(/\//g, '-')}
+              onChange={(e) =>
+                setNewTask({ ...newTask, startDate: e.target.value.replace(/-/g, '/') })
+              }
               className="col-span-3"
             />
           </div>
@@ -165,9 +181,12 @@ export function AddTaskDialog({ open, onOpenChange, onAddTask }: AddTaskDialogPr
             <Input
               id="task-end-date"
               type="date"
-              value={newTask.expectedEndDate?.replace(/\//g, "-") || ""}
+              value={newTask.expectedEndDate?.replace(/\//g, '-') || ''}
               onChange={(e) =>
-                setNewTask({ ...newTask, expectedEndDate: e.target.value.replace(/-/g, "/") || undefined })
+                setNewTask({
+                  ...newTask,
+                  expectedEndDate: e.target.value.replace(/-/g, '/') || undefined,
+                })
               }
               className="col-span-3"
             />
@@ -181,5 +200,5 @@ export function AddTaskDialog({ open, onOpenChange, onAddTask }: AddTaskDialogPr
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

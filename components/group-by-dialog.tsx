@@ -1,41 +1,46 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { useTaskStore } from "@/lib/task-store"
+import { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useTaskStore } from '@/lib/task-store';
 
 interface GroupByDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function GroupByDialog({ open, onOpenChange }: GroupByDialogProps) {
-  const { groupBy, setGroupBy } = useTaskStore()
-  const [localGroupBy, setLocalGroupBy] = useState(groupBy)
+  const { groupBy, setGroupBy } = useTaskStore();
+  const [localGroupBy, setLocalGroupBy] = useState(groupBy);
 
   // 当对话框打开时，重置本地分组配置
   useEffect(() => {
     if (open) {
-      setLocalGroupBy(groupBy)
+      setLocalGroupBy(groupBy);
     }
-  }, [open, groupBy])
+  }, [open, groupBy]);
 
   const handleApplyGrouping = () => {
-    setGroupBy(localGroupBy)
-    onOpenChange(false)
-  }
+    setGroupBy(localGroupBy);
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>任务分组</DialogTitle>
-          <DialogDescription className="sr-only">
-            选择任务列表的分组方式。
-          </DialogDescription>
+          <DialogDescription className="sr-only">选择任务列表的分组方式。</DialogDescription>
         </DialogHeader>
         <div className="py-4">
           <RadioGroup value={localGroupBy} onValueChange={setLocalGroupBy}>
@@ -65,5 +70,5 @@ export function GroupByDialog({ open, onOpenChange }: GroupByDialogProps) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,30 +1,43 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { useTaskStore } from "@/lib/task-store"
-import type { FilterConfig } from "@/lib/types"
-import { X } from "lucide-react"
+import { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { useTaskStore } from '@/lib/task-store';
+import type { FilterConfig } from '@/lib/types';
+import { X } from 'lucide-react';
 
 interface FilterDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
-  const { data, filterConfig, setFilterConfig } = useTaskStore()
-  const [localFilterConfig, setLocalFilterConfig] = useState<FilterConfig>({ ...filterConfig })
+  const { data, filterConfig, setFilterConfig } = useTaskStore();
+  const [localFilterConfig, setLocalFilterConfig] = useState<FilterConfig>({ ...filterConfig });
 
   // 当对话框打开时，重置本地筛选配置
   useEffect(() => {
     if (open) {
-      setLocalFilterConfig({ ...filterConfig })
+      setLocalFilterConfig({ ...filterConfig });
     }
-  }, [open, filterConfig])
+  }, [open, filterConfig]);
 
   // 从所有任务中提取唯一的用户
   const users = Array.from(
@@ -33,17 +46,17 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
         .flatMap((group) => group.tasks)
         .flatMap((task) => (task.assignee ? [[task.assignee.id, task.assignee] as const] : [])),
     ).values(),
-  )
+  );
 
   // 从所有任务中提取唯一的状态
   const statuses = Array.from(
     new Set(data.priorityGroups.flatMap((group) => group.tasks).map((task) => task.status)),
-  ).filter((s): s is string => !!s)
+  ).filter((s): s is string => !!s);
 
   // 从所有任务中提取唯一的优先级
   const priorities = Array.from(
     new Set(data.priorityGroups.flatMap((group) => group.tasks).map((task) => task.priority)),
-  ).filter((p): p is string => !!p)
+  ).filter((p): p is string => !!p);
 
   const handleApplyFilter = () => {
     // 设置筛选为激活状态
@@ -54,11 +67,11 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
         !!localFilterConfig.priority ||
         !!localFilterConfig.assignee ||
         !!localFilterConfig.dateRange,
-    }
+    };
 
-    setFilterConfig(newFilterConfig)
-    onOpenChange(false)
-  }
+    setFilterConfig(newFilterConfig);
+    onOpenChange(false);
+  };
 
   const handleClearFilter = () => {
     const emptyConfig: FilterConfig = {
@@ -67,21 +80,19 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
       assignee: null,
       dateRange: null,
       isActive: false,
-    }
+    };
 
-    setLocalFilterConfig(emptyConfig)
-    setFilterConfig(emptyConfig)
-    onOpenChange(false)
-  }
+    setLocalFilterConfig(emptyConfig);
+    setFilterConfig(emptyConfig);
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>筛选任务</DialogTitle>
-          <DialogDescription className="sr-only">
-            设置条件以筛选显示的任务列表。
-          </DialogDescription>
+          <DialogDescription className="sr-only">设置条件以筛选显示的任务列表。</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
@@ -90,8 +101,10 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
             </Label>
             <div className="col-span-3 relative">
               <Select
-                value={localFilterConfig.status || ""}
-                onValueChange={(value) => setLocalFilterConfig({ ...localFilterConfig, status: value || null })}
+                value={localFilterConfig.status || ''}
+                onValueChange={(value) =>
+                  setLocalFilterConfig({ ...localFilterConfig, status: value || null })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="选择状态" />
@@ -123,8 +136,10 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
             </Label>
             <div className="col-span-3 relative">
               <Select
-                value={localFilterConfig.priority || ""}
-                onValueChange={(value) => setLocalFilterConfig({ ...localFilterConfig, priority: value || null })}
+                value={localFilterConfig.priority || ''}
+                onValueChange={(value) =>
+                  setLocalFilterConfig({ ...localFilterConfig, priority: value || null })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="选择优先级" />
@@ -156,8 +171,10 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
             </Label>
             <div className="col-span-3 relative">
               <Select
-                value={localFilterConfig.assignee || ""}
-                onValueChange={(value) => setLocalFilterConfig({ ...localFilterConfig, assignee: value || null })}
+                value={localFilterConfig.assignee || ''}
+                onValueChange={(value) =>
+                  setLocalFilterConfig({ ...localFilterConfig, assignee: value || null })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="选择执行人" />
@@ -190,7 +207,7 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
                 <Input
                   type="date"
                   placeholder="开始日期"
-                  value={localFilterConfig.dateRange?.start || ""}
+                  value={localFilterConfig.dateRange?.start || ''}
                   onChange={(e) => {
                     setLocalFilterConfig({
                       ...localFilterConfig,
@@ -198,14 +215,14 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
                         ...(localFilterConfig.dateRange || {}),
                         start: e.target.value || undefined,
                       },
-                    })
+                    });
                   }}
                 />
                 <span>至</span>
                 <Input
                   type="date"
                   placeholder="结束日期"
-                  value={localFilterConfig.dateRange?.end || ""}
+                  value={localFilterConfig.dateRange?.end || ''}
                   onChange={(e) => {
                     setLocalFilterConfig({
                       ...localFilterConfig,
@@ -213,7 +230,7 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
                         ...(localFilterConfig.dateRange || {}),
                         end: e.target.value || undefined,
                       },
-                    })
+                    });
                   }}
                 />
                 {(localFilterConfig.dateRange?.start || localFilterConfig.dateRange?.end) && (
@@ -237,5 +254,5 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

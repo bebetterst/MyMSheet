@@ -1,24 +1,33 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
-import type { Task } from "@/lib/types"
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+import type { Task } from '@/lib/types';
 
 interface TaskStatusChartProps {
-  tasks: Task[]
+  tasks: Task[];
 }
 
 export function TaskStatusChart({ tasks }: TaskStatusChartProps) {
   // 计算每个状态的任务数量
-  const statusCounts: Record<string, number> = {}
+  const statusCounts: Record<string, number> = {};
 
   tasks.forEach((task) => {
-    const status = task.status || "未设置"
-    statusCounts[status] = (statusCounts[status] || 0) + 1
-  })
+    const status = task.status || '未设置';
+    statusCounts[status] = (statusCounts[status] || 0) + 1;
+  });
 
   // 转换为图表数据格式
   const chartData = Object.entries(statusCounts).map(([status, count]) => ({
     status,
     count,
-  }))
+  }));
 
   return (
     <div className="w-full h-[300px]">
@@ -41,5 +50,5 @@ export function TaskStatusChart({ tasks }: TaskStatusChartProps) {
         </BarChart>
       </ResponsiveContainer>
     </div>
-  )
+  );
 }

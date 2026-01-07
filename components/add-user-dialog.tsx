@@ -1,38 +1,57 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/hooks/use-toast"
+import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 interface AddUserDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onAddUser: (user: { id: string; name: string; avatar?: string; role?: string; department?: string }) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onAddUser: (user: {
+    id: string;
+    name: string;
+    avatar?: string;
+    role?: string;
+    department?: string;
+  }) => void;
 }
 
 export function AddUserDialog({ open, onOpenChange, onAddUser }: AddUserDialogProps) {
-  const { toast } = useToast()
-  const [userId, setUserId] = useState("")
-  const [userName, setUserName] = useState("")
-  const [userRole, setUserRole] = useState("member")
-  const [userDepartment, setUserDepartment] = useState("development")
+  const { toast } = useToast();
+  const [userId, setUserId] = useState('');
+  const [userName, setUserName] = useState('');
+  const [userRole, setUserRole] = useState('member');
+  const [userDepartment, setUserDepartment] = useState('development');
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!userId.trim() || !userName.trim()) {
       toast({
-        title: "输入错误",
-        description: "用户ID和姓名不能为空",
-        variant: "destructive",
-      })
-      return
+        title: '输入错误',
+        description: '用户ID和姓名不能为空',
+        variant: 'destructive',
+      });
+      return;
     }
 
     // 创建新用户
@@ -41,34 +60,32 @@ export function AddUserDialog({ open, onOpenChange, onAddUser }: AddUserDialogPr
       name: userName,
       role: userRole,
       department: userDepartment,
-    }
+    };
 
-    onAddUser(newUser)
-    resetForm()
-    onOpenChange(false)
-  }
+    onAddUser(newUser);
+    resetForm();
+    onOpenChange(false);
+  };
 
   const resetForm = () => {
-    setUserId("")
-    setUserName("")
-    setUserRole("member")
-    setUserDepartment("development")
-  }
+    setUserId('');
+    setUserName('');
+    setUserRole('member');
+    setUserDepartment('development');
+  };
 
   return (
     <Dialog
       open={open}
       onOpenChange={(isOpen) => {
-        if (!isOpen) resetForm()
-        onOpenChange(isOpen)
+        if (!isOpen) resetForm();
+        onOpenChange(isOpen);
       }}
     >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>添加新用户</DialogTitle>
-          <DialogDescription className="sr-only">
-            填写用户信息以添加到系统。
-          </DialogDescription>
+          <DialogDescription className="sr-only">填写用户信息以添加到系统。</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -130,5 +147,5 @@ export function AddUserDialog({ open, onOpenChange, onAddUser }: AddUserDialogPr
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

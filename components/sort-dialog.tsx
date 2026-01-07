@@ -1,64 +1,76 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useTaskStore } from "@/lib/task-store"
-import type { SortConfig } from "@/lib/types"
+import { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useTaskStore } from '@/lib/task-store';
+import type { SortConfig } from '@/lib/types';
 
 interface SortDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function SortDialog({ open, onOpenChange }: SortDialogProps) {
-  const { sortConfig, setSortConfig } = useTaskStore()
-  const [localSortConfig, setLocalSortConfig] = useState<SortConfig>({ ...sortConfig })
+  const { sortConfig, setSortConfig } = useTaskStore();
+  const [localSortConfig, setLocalSortConfig] = useState<SortConfig>({ ...sortConfig });
 
   // 当对话框打开时，重置本地排序配置
   useEffect(() => {
     if (open) {
-      setLocalSortConfig({ ...sortConfig })
+      setLocalSortConfig({ ...sortConfig });
     }
-  }, [open, sortConfig])
+  }, [open, sortConfig]);
 
   const handleApplySort = () => {
     // 设置排序为激活状态
     const newSortConfig = {
       ...localSortConfig,
       isActive: !!localSortConfig.field,
-    }
+    };
 
-    setSortConfig(newSortConfig)
-    onOpenChange(false)
-  }
+    setSortConfig(newSortConfig);
+    onOpenChange(false);
+  };
 
   const handleClearSort = () => {
     const emptyConfig: SortConfig = {
       field: null,
-      direction: "asc",
+      direction: 'asc',
       isActive: false,
-    }
+    };
 
-    setLocalSortConfig(emptyConfig)
-    setSortConfig(emptyConfig)
-    onOpenChange(false)
-  }
+    setLocalSortConfig(emptyConfig);
+    setSortConfig(emptyConfig);
+    onOpenChange(false);
+  };
 
   // 可排序的字段
   const sortableFields = [
-    { id: "description", name: "任务描述" },
-    { id: "assignee", name: "任务执行人" },
-    { id: "status", name: "进展状态" },
-    { id: "priority", name: "优先级" },
-    { id: "startDate", name: "开始日期" },
-    { id: "expectedEndDate", name: "预计完成日期" },
-    { id: "actualEndDate", name: "实际完成日期" },
-    { id: "completed", name: "完成状态" },
-  ]
+    { id: 'description', name: '任务描述' },
+    { id: 'assignee', name: '任务执行人' },
+    { id: 'status', name: '进展状态' },
+    { id: 'priority', name: '优先级' },
+    { id: 'startDate', name: '开始日期' },
+    { id: 'expectedEndDate', name: '预计完成日期' },
+    { id: 'actualEndDate', name: '实际完成日期' },
+    { id: 'completed', name: '完成状态' },
+  ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -72,8 +84,10 @@ export function SortDialog({ open, onOpenChange }: SortDialogProps) {
               排序字段
             </Label>
             <Select
-              value={localSortConfig.field || ""}
-              onValueChange={(value) => setLocalSortConfig({ ...localSortConfig, field: value || null })}
+              value={localSortConfig.field || ''}
+              onValueChange={(value) =>
+                setLocalSortConfig({ ...localSortConfig, field: value || null })
+              }
             >
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="选择排序字段" />
@@ -94,7 +108,7 @@ export function SortDialog({ open, onOpenChange }: SortDialogProps) {
               <RadioGroup
                 value={localSortConfig.direction}
                 onValueChange={(value) =>
-                  setLocalSortConfig({ ...localSortConfig, direction: value as "asc" | "desc" })
+                  setLocalSortConfig({ ...localSortConfig, direction: value as 'asc' | 'desc' })
                 }
                 className="col-span-3"
               >
@@ -120,5 +134,5 @@ export function SortDialog({ open, onOpenChange }: SortDialogProps) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

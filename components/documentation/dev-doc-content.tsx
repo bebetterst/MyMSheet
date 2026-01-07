@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 export function DevDocContent() {
   return (
@@ -14,7 +14,9 @@ export function DevDocContent() {
         <div>
           <h2 className="text-xl font-semibold mb-3 border-b pb-2">环境准备</h2>
           <div className="space-y-4 mt-4">
-            <p className="text-gray-700 dark:text-gray-300 mb-2">在开始之前，请确保您已经安装了以下工具：</p>
+            <p className="text-gray-700 dark:text-gray-300 mb-2">
+              在开始之前，请确保您已经安装了以下工具：
+            </p>
             <ul className="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300">
               <li>Node.js (v18+)</li>
               <li>pnpm 或 yarn</li>
@@ -162,17 +164,25 @@ const useTaskStore = create<TaskState>()(
         <div>
           <h2 className="text-xl font-semibold mb-3 border-b pb-2">二次开发指南</h2>
           <div className="space-y-4 mt-4">
-            <p className="text-gray-700 dark:text-gray-300 mb-2">要对多维表格进行二次开发，我们可以按照以下步骤操作：</p>
+            <p className="text-gray-700 dark:text-gray-300 mb-2">
+              要对多维表格进行二次开发，我们可以按照以下步骤操作：
+            </p>
 
             <h3 className="text-lg font-medium mt-6 mb-2">1. 添加新功能</h3>
             <p className="text-gray-700 dark:text-gray-300 mb-2">以下是添加新功能的一般步骤：</p>
             <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
               <li>
-                在 <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">lib/types.ts</code>{" "}
+                在{' '}
+                <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">
+                  lib/types.ts
+                </code>{' '}
                 中添加新的类型定义
               </li>
               <li>
-                在 <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">lib/task-store.ts</code>{" "}
+                在{' '}
+                <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">
+                  lib/task-store.ts
+                </code>{' '}
                 中添加新的状态和方法
               </li>
               <li>创建新的组件或修改现有组件</li>
@@ -288,9 +298,7 @@ export function TagBadge({ tag, onRemove }: TagBadgeProps) {
             </div>
 
             <h3 className="text-lg font-medium mt-6 mb-2">2. 自定义UI组件</h3>
-            <p className="text-gray-700 dark:text-gray-300 mb-2">
-              我们可以通过以下方式自定义UI：
-            </p>
+            <p className="text-gray-700 dark:text-gray-300 mb-2">我们可以通过以下方式自定义UI：</p>
             <ul className="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300">
               <li>修改现有组件的样式</li>
               <li>创建新的UI组件</li>
@@ -336,7 +344,9 @@ export function CustomButton({
         <div>
           <h2 className="text-xl font-semibold mb-3 border-b pb-2">API参考</h2>
           <div className="space-y-4 mt-4">
-            <p className="text-gray-700 dark:text-gray-300 mb-2">多维表格提供了丰富的API，方便您进行二次开发：</p>
+            <p className="text-gray-700 dark:text-gray-300 mb-2">
+              多维表格提供了丰富的API，方便您进行二次开发：
+            </p>
 
             <h3 className="text-lg font-medium mt-4 mb-2">任务管理API</h3>
             <div className="overflow-x-auto">
@@ -362,9 +372,15 @@ export function CustomButton({
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                       addTask
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">task: Task</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">void</td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">添加新任务</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      task: Task
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      void
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                      添加新任务
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -373,15 +389,23 @@ export function CustomButton({
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       id: string, task: Partial&lt;Task&gt;
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">void</td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">更新任务信息</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      void
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                      更新任务信息
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                       deleteTask
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">id: string</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">void</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      id: string
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      void
+                    </td>
                     <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">删除任务</td>
                   </tr>
                 </tbody>
@@ -404,8 +428,8 @@ export function CustomButton({
             <div className="border rounded-md p-4">
               <h4 className="font-medium">如何实现数据持久化？</h4>
               <p className="text-sm text-muted-foreground mt-1">
-                多维表格默认使用 localStorage 进行数据持久化。如需使用其他存储方式，可以修改 Zustand 的 persist
-                中间件配置，或实现自定义存储适配器。
+                多维表格默认使用 localStorage 进行数据持久化。如需使用其他存储方式，可以修改 Zustand
+                的 persist 中间件配置，或实现自定义存储适配器。
               </p>
             </div>
 
@@ -419,13 +443,13 @@ export function CustomButton({
             <div className="border rounded-md p-4">
               <h4 className="font-medium">如何集成第三方服务？</h4>
               <p className="text-sm text-muted-foreground mt-1">
-                您可以使用 API 客户端（如 axios）与第三方服务进行集成。建议创建专门的服务模块来处理 API
-                调用，并使用环境变量存储 API 密钥等敏感信息。
+                您可以使用 API 客户端（如 axios）与第三方服务进行集成。建议创建专门的服务模块来处理
+                API 调用，并使用环境变量存储 API 密钥等敏感信息。
               </p>
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

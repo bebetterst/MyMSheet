@@ -16,17 +16,18 @@
 ## Tech Stack
 
 ### Frontend Framework
+
 - **Next.js 15.2** - React server-side rendering framework
   - App Router system
   - Server and client component hybrid rendering
   - Automatic code splitting and optimization
-  
 - **React 19** - UI library
   - Latest concurrent features
   - Automatic batching optimization
   - Hooks API
 
 ### UI Component Library
+
 - **shadcn/ui** - Component system based on Radix UI
   - 40+ customizable components
   - Full accessibility support
@@ -38,6 +39,7 @@
   - Responsive design system
 
 ### State Management
+
 - **Zustand** - Lightweight state management
   - Flux architecture based
   - Middleware system (persist)
@@ -45,6 +47,7 @@
   - LocalStorage persistence
 
 ### Drag and Drop
+
 - **@dnd-kit** - Modern drag and drop library
   - Modular design
   - High performance optimization
@@ -52,21 +55,23 @@
   - Custom sensors
 
 ### Data Visualization
+
 - **Recharts** - React chart library
   - Declarative API
   - Responsive design
   - Rich chart types
 
 ### Form Handling
+
 - **React Hook Form** - Form state management
   - High performance validation
   - Minimal re-renders
-  
 - **Zod** - TypeScript-first schema validation
   - Type inference
   - Runtime validation
 
 ### Development Tools
+
 - **TypeScript 5** - Static type checking
 - **ESLint** - Code quality checking
 - **PostCSS** - CSS processing tool
@@ -196,24 +201,24 @@
 
 ```typescript
 interface Task {
-  id: string                    // Unique identifier
-  description: string           // Task description
-  summary: string              // Task summary
-  assignee: User               // Assignee
-  status: TaskStatus           // Progress status
-  startDate: string            // Start date
-  expectedEndDate?: string     // Expected completion date
-  actualEndDate?: string       // Actual completion date
-  isDelayed: boolean          // Is delayed
-  completed: boolean          // Completion status
-  priority: TaskPriority      // Priority
-  customFields?: Record<string, CustomFieldValue>  // Custom fields
+  id: string; // Unique identifier
+  description: string; // Task description
+  summary: string; // Task summary
+  assignee: User; // Assignee
+  status: TaskStatus; // Progress status
+  startDate: string; // Start date
+  expectedEndDate?: string; // Expected completion date
+  actualEndDate?: string; // Actual completion date
+  isDelayed: boolean; // Is delayed
+  completed: boolean; // Completion status
+  priority: TaskPriority; // Priority
+  customFields?: Record<string, CustomFieldValue>; // Custom fields
 }
 
 interface PriorityGroup {
-  id: string                   // Group ID
-  name: string                 // Group name
-  tasks: Task[]                // Task list
+  id: string; // Group ID
+  name: string; // Group name
+  tasks: Task[]; // Task list
 }
 ```
 
@@ -252,6 +257,7 @@ interface PriorityGroup {
 #### Table View (TaskManagementTable)
 
 **Features:**
+
 - Drag and drop task sorting
 - Resizable columns
 - Drag and drop column reordering
@@ -261,32 +267,35 @@ interface PriorityGroup {
 - Responsive row height adjustment
 
 **Implementation:**
+
 ```typescript
 // Column resize implementation
 const handleColumnResize = (fieldId: string, width: number) => {
-  updateFieldWidth(fieldId, width)
+  updateFieldWidth(fieldId, width);
   // Dynamically update table total width
-  calculateTableWidth()
-}
+  calculateTableWidth();
+};
 
 // Drag and drop sorting implementation
 const handleDragEnd = (event: DragEndEvent) => {
-  const { active, over } = event
+  const { active, over } = event;
   // Find source task and target position
   // Support cross-priority group dragging
-  reorderTasks(sourceGroupId, activeIndex, overIndex, targetGroupId)
-}
+  reorderTasks(sourceGroupId, activeIndex, overIndex, targetGroupId);
+};
 ```
 
 #### Kanban View (KanbanBoard)
 
 **Features:**
+
 - Display by status columns
 - Card drag to change status
 - Quick add task
 - Card hover preview
 
 **Implementation:**
+
 ```typescript
 // Drag and drop using @dnd-kit
 <DndContext
@@ -305,6 +314,7 @@ const handleDragEnd = (event: DragEndEvent) => {
 #### Assignment View (AssignmentBoard)
 
 **Features:**
+
 - Display tasks grouped by assignee
 - Workload visualization
 - User drag and drop sorting
@@ -316,22 +326,23 @@ const handleDragEnd = (event: DragEndEvent) => {
 
 ```typescript
 const defaultFields = [
-  { id: "description", name: "Task Description", type: "Text" },
-  { id: "summary", name: "Task Summary", type: "Text" },
-  { id: "assignee", name: "Assignee", type: "Single Select" },
-  { id: "status", name: "Status", type: "Tag" },
-  { id: "priority", name: "Priority", type: "Tag" },
-  { id: "startDate", name: "Start Date", type: "Text" },
-  { id: "expectedEndDate", name: "Expected End Date", type: "Text" },
-  { id: "isDelayed", name: "Is Delayed", type: "Checkbox" },
-  { id: "actualEndDate", name: "Actual End Date", type: "Text" },
-  { id: "completed", name: "Final Status", type: "Checkbox" },
-]
+  { id: 'description', name: 'Task Description', type: 'Text' },
+  { id: 'summary', name: 'Task Summary', type: 'Text' },
+  { id: 'assignee', name: 'Assignee', type: 'Single Select' },
+  { id: 'status', name: 'Status', type: 'Tag' },
+  { id: 'priority', name: 'Priority', type: 'Tag' },
+  { id: 'startDate', name: 'Start Date', type: 'Text' },
+  { id: 'expectedEndDate', name: 'Expected End Date', type: 'Text' },
+  { id: 'isDelayed', name: 'Is Delayed', type: 'Checkbox' },
+  { id: 'actualEndDate', name: 'Actual End Date', type: 'Text' },
+  { id: 'completed', name: 'Final Status', type: 'Checkbox' },
+];
 ```
 
 #### Custom Fields
 
 **Supported field types:**
+
 - Text
 - Number
 - Tag
@@ -341,29 +352,30 @@ const defaultFields = [
 - Image
 
 **Implementation:**
+
 ```typescript
 interface FieldConfig {
-  id: string           // Field ID (custom_xxx)
-  name: string         // Field name
-  visible: boolean     // Is visible
-  width: number        // Column width
-  type: FieldType      // Field type
-  options?: string[]   // Options (for select types)
+  id: string; // Field ID (custom_xxx)
+  name: string; // Field name
+  visible: boolean; // Is visible
+  width: number; // Column width
+  type: FieldType; // Field type
+  options?: string[]; // Options (for select types)
 }
 
 // Add custom field
 const addField = (field: FieldConfig) => {
   // Update field configuration
-  setVisibleFields([...visibleFields, field])
+  setVisibleFields([...visibleFields, field]);
   // Update header order
-  setHeaderOrder([...headerOrder, field.id])
-}
+  setHeaderOrder([...headerOrder, field.id]);
+};
 
 // Update custom field value
 const updateTaskCustomField = (taskId, fieldId, value) => {
   // Update task's customFields
-  task.customFields[fieldId] = { type, value }
-}
+  task.customFields[fieldId] = { type, value };
+};
 ```
 
 ### 4. Import/Export System
@@ -372,35 +384,37 @@ const updateTaskCustomField = (taskId, fieldId, value) => {
 
 ```typescript
 const exportTaskData = () => {
-  const tasks = data.priorityGroups.flatMap(group => group.tasks)
-  const jsonData = JSON.stringify(tasks, null, 2)
-  const blob = new Blob([jsonData], { type: "application/json" })
+  const tasks = data.priorityGroups.flatMap((group) => group.tasks);
+  const jsonData = JSON.stringify(tasks, null, 2);
+  const blob = new Blob([jsonData], { type: 'application/json' });
   // Download file
-  downloadFile(blob, `tasks-export-${date}.json`)
-}
+  downloadFile(blob, `tasks-export-${date}.json`);
+};
 ```
 
 #### Import Feature
 
 **Supported formats:**
+
 - JSON format task data
 - Automatic data structure validation
 - Batch import tasks
 - Error notification
 
 **Implementation:**
+
 ```typescript
 const importTasks = (file: File) => {
-  const reader = new FileReader()
+  const reader = new FileReader();
   reader.onload = (e) => {
-    const tasks = JSON.parse(e.target.result)
+    const tasks = JSON.parse(e.target.result);
     // Validate data
-    validateTasks(tasks)
+    validateTasks(tasks);
     // Batch add
-    addMultipleTasks(tasks)
-  }
-  reader.readAsText(file)
-}
+    addMultipleTasks(tasks);
+  };
+  reader.readAsText(file);
+};
 ```
 
 ## Data Flow Design
@@ -443,7 +457,7 @@ const updateTask = (taskId, updates) => {
 
 ```typescript
 // Component subscribes to Store
-const { data, updateTask } = useTaskStore()
+const { data, updateTask } = useTaskStore();
 
 // Zustand automatically tracks dependencies
 // Re-renders only when used state changes
@@ -456,80 +470,81 @@ const { data, updateTask } = useTaskStore()
 ```typescript
 interface TaskStore {
   // === Data State ===
-  data: TaskData                    // Raw data
-  filteredData: TaskData            // Filtered data
-  searchQuery: string               // Search query
-  
+  data: TaskData; // Raw data
+  filteredData: TaskData; // Filtered data
+  searchQuery: string; // Search query
+
   // === View Configuration ===
   viewConfig: {
-    rowHeight: RowHeight           // Row height
-    editMode: boolean              // Edit mode
-    expandedGroups: Record<string, boolean>    // Group expand state
-    expandedTasks: Record<string, boolean>     // Task expand state
-    headerDraggable: boolean       // Header draggable
-  }
-  
+    rowHeight: RowHeight; // Row height
+    editMode: boolean; // Edit mode
+    expandedGroups: Record<string, boolean>; // Group expand state
+    expandedTasks: Record<string, boolean>; // Task expand state
+    headerDraggable: boolean; // Header draggable
+  };
+
   // === Filter Configuration ===
   filterConfig: {
-    status: string | null          // Status filter
-    priority: string | null        // Priority filter
-    assignee: string | null        // Assignee filter
-    dateRange: {                   // Date range
-      start?: string
-      end?: string
-    } | null
-    isActive: boolean              // Is filter active
-  }
-  
+    status: string | null; // Status filter
+    priority: string | null; // Priority filter
+    assignee: string | null; // Assignee filter
+    dateRange: {
+      // Date range
+      start?: string;
+      end?: string;
+    } | null;
+    isActive: boolean; // Is filter active
+  };
+
   // === Sort Configuration ===
   sortConfig: {
-    field: string | null           // Sort field
-    direction: "asc" | "desc"     // Sort direction
-    isActive: boolean              // Is sort active
-  }
-  
+    field: string | null; // Sort field
+    direction: 'asc' | 'desc'; // Sort direction
+    isActive: boolean; // Is sort active
+  };
+
   // === Group Configuration ===
-  groupBy: string                  // Group field
-  
+  groupBy: string; // Group field
+
   // === Field Configuration ===
-  visibleFields: FieldConfig[]     // Visible fields list
-  headerOrder: string[]            // Header order
-  
+  visibleFields: FieldConfig[]; // Visible fields list
+  headerOrder: string[]; // Header order
+
   // === User Configuration ===
-  userOrder: string[]              // User order
-  
+  userOrder: string[]; // User order
+
   // === Actions ===
   // Data operations
-  addTask: (task: Task) => void
-  updateTask: (taskId: string, updates: Partial<Task>) => void
-  addMultipleTasks: (tasks: Task[]) => void
-  moveTask: (taskId: string, newStatus: TaskStatus) => void
-  reorderTasks: (groupId, oldIndex, newIndex, targetGroupId?) => void
-  
+  addTask: (task: Task) => void;
+  updateTask: (taskId: string, updates: Partial<Task>) => void;
+  addMultipleTasks: (tasks: Task[]) => void;
+  moveTask: (taskId: string, newStatus: TaskStatus) => void;
+  reorderTasks: (groupId, oldIndex, newIndex, targetGroupId?) => void;
+
   // User operations
-  addUser: (user: User) => void
-  deleteUser: (userId: string) => void
-  reorderUsers: (oldIndex, newIndex) => void
-  
+  addUser: (user: User) => void;
+  deleteUser: (userId: string) => void;
+  reorderUsers: (oldIndex, newIndex) => void;
+
   // Field operations
-  addField: (field: FieldConfig) => void
-  updateFieldWidth: (fieldId: string, width: number) => void
-  updateFieldType: (fieldId: string, type: FieldType) => void
-  updateTaskCustomField: (taskId, fieldId, value) => void
-  
+  addField: (field: FieldConfig) => void;
+  updateFieldWidth: (fieldId: string, width: number) => void;
+  updateFieldType: (fieldId: string, type: FieldType) => void;
+  updateTaskCustomField: (taskId, fieldId, value) => void;
+
   // Configuration operations
-  updateViewConfig: (updates: Partial<ViewConfig>) => void
-  setFilterConfig: (config: FilterConfig) => void
-  setSortConfig: (config: SortConfig) => void
-  setGroupBy: (field: string) => void
-  setVisibleFields: (fields: FieldConfig[]) => void
-  setHeaderOrder: (order: string[]) => void
-  reorderHeaders: (oldIndex, newIndex) => void
-  
+  updateViewConfig: (updates: Partial<ViewConfig>) => void;
+  setFilterConfig: (config: FilterConfig) => void;
+  setSortConfig: (config: SortConfig) => void;
+  setGroupBy: (field: string) => void;
+  setVisibleFields: (fields: FieldConfig[]) => void;
+  setHeaderOrder: (order: string[]) => void;
+  reorderHeaders: (oldIndex, newIndex) => void;
+
   // Data processing
-  applyFilters: () => void
-  applySorting: () => void
-  regroupData: () => TaskData
+  applyFilters: () => void;
+  applySorting: () => void;
+  regroupData: () => TaskData;
 }
 ```
 
@@ -542,7 +557,7 @@ persist(
     // store implementation
   }),
   {
-    name: "task-management-storage",
+    name: 'task-management-storage',
     partialize: (state) => ({
       data: state.data,
       viewConfig: state.viewConfig,
@@ -553,11 +568,12 @@ persist(
       userOrder: state.userOrder,
       headerOrder: state.headerOrder,
     }),
-  }
-)
+  },
+);
 ```
 
 **Persisted data:**
+
 - Task data
 - View configuration
 - Filter/sort/group configuration
@@ -565,6 +581,7 @@ persist(
 - User order
 
 **Non-persisted data:**
+
 - Search query
 - Filtered data (computed)
 
@@ -609,7 +626,7 @@ const SortableItem = ({ task }) => {
     transition,
     isDragging
   } = useSortable({ id: task.id })
-  
+
   return (
     <div
       ref={setNodeRef}
@@ -629,36 +646,36 @@ const SortableItem = ({ task }) => {
 
 ```typescript
 const handleDragEnd = (event: DragEndEvent) => {
-  const { active, over } = event
-  
+  const { active, over } = event;
+
   // Find source task and target position
-  const sourceGroup = findGroup(active.id)
-  const targetGroup = findGroup(over.id)
-  const sourceIndex = findIndex(active.id)
-  const targetIndex = findIndex(over.id)
-  
+  const sourceGroup = findGroup(active.id);
+  const targetGroup = findGroup(over.id);
+  const sourceIndex = findIndex(active.id);
+  const targetIndex = findIndex(over.id);
+
   // Support cross-group dragging
   if (sourceGroup !== targetGroup) {
     // Update task priority
-    updateTaskPriority(active.id, targetGroup.id)
+    updateTaskPriority(active.id, targetGroup.id);
   }
-  
+
   // Reorder
-  reorderTasks(sourceGroup.id, sourceIndex, targetIndex, targetGroup.id)
-}
+  reorderTasks(sourceGroup.id, sourceIndex, targetIndex, targetGroup.id);
+};
 ```
 
 #### 2. Header Drag and Drop Reordering
 
 ```typescript
 const handleHeaderDragEnd = (event: DragEndEvent) => {
-  const { active, over } = event
-  const oldIndex = headerOrder.indexOf(active.id)
-  const newIndex = headerOrder.indexOf(over.id)
-  
+  const { active, over } = event;
+  const oldIndex = headerOrder.indexOf(active.id);
+  const newIndex = headerOrder.indexOf(over.id);
+
   // Adjust header order
-  reorderHeaders(oldIndex, newIndex)
-}
+  reorderHeaders(oldIndex, newIndex);
+};
 ```
 
 #### 3. Kanban Card Dragging
@@ -667,7 +684,7 @@ const handleHeaderDragEnd = (event: DragEndEvent) => {
 // Droppable container
 const DroppableContainer = ({ status, children }) => {
   const { setNodeRef } = useDroppable({ id: status })
-  
+
   return (
     <div ref={setNodeRef}>
       {children}
@@ -690,22 +707,28 @@ const handleKanbanDragEnd = (event: DragEndEvent) => {
 
 ```typescript
 // Use React.memo to avoid unnecessary re-renders
-const TaskRow = React.memo(({ task, onUpdate }) => {
-  // Component implementation
-}, (prevProps, nextProps) => {
-  // Custom comparison logic
-  return prevProps.task.id === nextProps.task.id
-})
+const TaskRow = React.memo(
+  ({ task, onUpdate }) => {
+    // Component implementation
+  },
+  (prevProps, nextProps) => {
+    // Custom comparison logic
+    return prevProps.task.id === nextProps.task.id;
+  },
+);
 
 // Use useCallback to cache functions
-const handleTaskUpdate = useCallback((taskId, updates) => {
-  updateTask(taskId, updates)
-}, [updateTask])
+const handleTaskUpdate = useCallback(
+  (taskId, updates) => {
+    updateTask(taskId, updates);
+  },
+  [updateTask],
+);
 
 // Use useMemo to cache computed results
 const sortedTasks = useMemo(() => {
-  return tasks.sort(compareFn)
-}, [tasks, sortConfig])
+  return tasks.sort(compareFn);
+}, [tasks, sortConfig]);
 ```
 
 #### Virtual List (To be implemented)
@@ -717,13 +740,13 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 
 const VirtualTaskList = ({ tasks }) => {
   const parentRef = useRef()
-  
+
   const rowVirtualizer = useVirtualizer({
     count: tasks.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 50,
   })
-  
+
   return (
     <div ref={parentRef}>
       {rowVirtualizer.getVirtualItems().map(virtualRow => (
@@ -738,16 +761,13 @@ const VirtualTaskList = ({ tasks }) => {
 
 ```typescript
 // Selective subscription to avoid unnecessary re-renders
-const tasks = useTaskStore(state => state.data.tasks)  // ✓ Only subscribe to tasks
-const store = useTaskStore()  // ✗ Subscribe to entire store
+const tasks = useTaskStore((state) => state.data.tasks); // ✓ Only subscribe to tasks
+const store = useTaskStore(); // ✗ Subscribe to entire store
 
 // Use shallow comparison
-import { shallow } from 'zustand/shallow'
+import { shallow } from 'zustand/shallow';
 
-const [tasks, updateTask] = useTaskStore(
-  state => [state.data.tasks, state.updateTask],
-  shallow
-)
+const [tasks, updateTask] = useTaskStore((state) => [state.data.tasks, state.updateTask], shallow);
 ```
 
 ### 3. Drag and Drop Performance Optimization
@@ -757,23 +777,23 @@ const [tasks, updateTask] = useTaskStore(
 const sensors = useSensors(
   useSensor(PointerSensor, {
     activationConstraint: {
-      distance: 8,  // Requires 8px drag to trigger
-    }
-  })
-)
+      distance: 8, // Requires 8px drag to trigger
+    },
+  }),
+);
 
 // Reduce render frequency during drag
-const [isDragging, setIsDragging] = useState(false)
+const [isDragging, setIsDragging] = useState(false);
 
 const handleDragStart = () => {
-  setIsDragging(true)
+  setIsDragging(true);
   // Disable some animations and effects
-}
+};
 
 const handleDragEnd = () => {
-  setIsDragging(false)
+  setIsDragging(false);
   // Restore animations and effects
-}
+};
 ```
 
 ### 4. Column Resize Optimization
@@ -782,44 +802,41 @@ const handleDragEnd = () => {
 // Use requestAnimationFrame to optimize resize performance
 const handleMouseMove = (e) => {
   requestAnimationFrame(() => {
-    const newWidth = calculateWidth(e)
-    updateColumnWidth(newWidth)
-  })
-}
+    const newWidth = calculateWidth(e);
+    updateColumnWidth(newWidth);
+  });
+};
 
 // Use CSS variables to dynamically update width
 const updateColumnWidth = (fieldId, width) => {
-  document.documentElement.style.setProperty(
-    `--column-${fieldId}-width`,
-    `${width}px`
-  )
-}
+  document.documentElement.style.setProperty(`--column-${fieldId}-width`, `${width}px`);
+};
 ```
 
 ### 5. Data Processing Optimization
 
 ```typescript
 // Use JSON.parse(JSON.stringify()) for deep copy (simple scenarios)
-const newData = JSON.parse(JSON.stringify(state.data))
+const newData = JSON.parse(JSON.stringify(state.data));
 
 // Use immer for large data (to be introduced)
-import { produce } from 'immer'
+import { produce } from 'immer';
 
 const updateTask = produce((draft, taskId, updates) => {
-  const task = findTaskInDraft(draft, taskId)
-  Object.assign(task, updates)
-})
+  const task = findTaskInDraft(draft, taskId);
+  Object.assign(task, updates);
+});
 
 // Batch update optimization
 const updateMultipleTasks = (updates) => {
   set((state) => {
-    const newData = { ...state.data }
+    const newData = { ...state.data };
     updates.forEach(({ taskId, updates }) => {
-      updateTaskInData(newData, taskId, updates)
-    })
-    return { data: newData }
-  })
-}
+      updateTaskInData(newData, taskId, updates);
+    });
+    return { data: newData };
+  });
+};
 ```
 
 ### 6. Next.js Optimization
@@ -829,17 +846,17 @@ const updateMultipleTasks = (updates) => {
 const nextConfig = {
   // Image optimization
   images: {
-    unoptimized: true,  // Enable/disable as needed
+    unoptimized: true, // Enable/disable as needed
   },
-  
+
   // Production build optimization
   swcMinify: true,
-  
+
   // Code splitting
   experimental: {
     optimizePackageImports: ['@radix-ui/react-*'],
-  }
-}
+  },
+};
 ```
 
 ## Development Guidelines
@@ -874,22 +891,22 @@ app/
 
 ```typescript
 // Components: PascalCase
-const TaskManagementTable = () => {}
+const TaskManagementTable = () => {};
 
 // Functions/variables: camelCase
-const handleTaskUpdate = () => {}
-const isActive = true
+const handleTaskUpdate = () => {};
+const isActive = true;
 
 // Constants: UPPER_SNAKE_CASE
-const MAX_TASKS = 100
+const MAX_TASKS = 100;
 
 // Types/interfaces: PascalCase
 interface Task {}
-type TaskStatus = "pending" | "in-progress"
+type TaskStatus = 'pending' | 'in-progress';
 
 // File names: kebab-case
-task-management-table.tsx
-use-local-storage.ts
+task - management - table.tsx;
+use - local - storage.ts;
 ```
 
 ### TypeScript Usage
@@ -897,26 +914,23 @@ use-local-storage.ts
 ```typescript
 // Strict type definitions
 interface Task {
-  id: string
+  id: string;
   // ...other fields
 }
 
 // Use type inference
-const tasks = useTaskStore(state => state.data.tasks)  // Automatically inferred as Task[]
+const tasks = useTaskStore((state) => state.data.tasks); // Automatically inferred as Task[]
 
 // Generic usage
-const updateField = <T extends FieldType>(
-  fieldId: string,
-  value: FieldValueMap[T]
-) => {}
+const updateField = <T extends FieldType>(fieldId: string, value: FieldValueMap[T]) => {};
 
 // Avoid any, use unknown
 const parseData = (data: unknown) => {
   if (isTask(data)) {
     // Type guard
-    return data
+    return data;
   }
-}
+};
 ```
 
 ### Component Writing Guidelines
@@ -939,12 +953,12 @@ export const TaskRow: React.FC<TaskRowProps> = ({ task, onUpdate }) => {
   // 3. Hooks (fixed order)
   const [isEditing, setIsEditing] = useState(false)
   const updateTask = useTaskStore(state => state.updateTask)
-  
+
   // 4. Event handlers
   const handleClick = useCallback(() => {
     setIsEditing(true)
   }, [])
-  
+
   // 5. Render
   return (
     <div onClick={handleClick}>
@@ -982,18 +996,20 @@ set((state) => ({
   ...state,
   data: {
     ...state.data,
-    tasks: [...state.data.tasks, newTask]
-  }
-}))
+    tasks: [...state.data.tasks, newTask],
+  },
+}));
 
 // Use produce (immer) for complex state updates
-set(produce((draft) => {
-  draft.data.tasks.push(newTask)
-}))
+set(
+  produce((draft) => {
+    draft.data.tasks.push(newTask);
+  }),
+);
 
 // Avoid direct state mutation
-state.data.tasks.push(newTask)  // ✗ Wrong
-set({ data: { ...state.data, tasks: [...tasks, newTask] }})  // ✓ Correct
+state.data.tasks.push(newTask); // ✗ Wrong
+set({ data: { ...state.data, tasks: [...tasks, newTask] } }); // ✓ Correct
 ```
 
 ### Error Handling
@@ -1002,27 +1018,22 @@ set({ data: { ...state.data, tasks: [...tasks, newTask] }})  // ✓ Correct
 // Use try-catch for async operations
 const importTasks = async (file: File) => {
   try {
-    const data = await parseFile(file)
-    addMultipleTasks(data)
-    toast({ title: "Import successful" })
+    const data = await parseFile(file);
+    addMultipleTasks(data);
+    toast({ title: 'Import successful' });
   } catch (error) {
     toast({
-      title: "Import failed",
+      title: 'Import failed',
       description: error.message,
-      variant: "destructive"
-    })
+      variant: 'destructive',
+    });
   }
-}
+};
 
 // Type guards
 const isTask = (data: unknown): data is Task => {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    'id' in data &&
-    'description' in data
-  )
-}
+  return typeof data === 'object' && data !== null && 'id' in data && 'description' in data;
+};
 ```
 
 ### Performance Considerations
@@ -1087,6 +1098,7 @@ const tasks = useTaskStore(state => state.tasks)
 pxcharts is a technologically advanced, architecturally clear modern multi-dimensional table application. Through reasonable layered design, powerful state management, smooth drag and drop interactions, and meticulous performance optimization, it provides users with an excellent user experience.
 
 **Core Advantages:**
+
 - 🏗️ Clear modular architecture
 - ⚡ High-performance state management
 - 🎨 Elegant UI design

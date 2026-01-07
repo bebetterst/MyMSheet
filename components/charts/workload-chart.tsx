@@ -1,18 +1,27 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
-import type { Task } from "@/lib/types"
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+import type { Task } from '@/lib/types';
 
 interface WorkloadChartProps {
-  tasks: Task[]
+  tasks: Task[];
 }
 
 export function WorkloadChart({ tasks }: WorkloadChartProps) {
   // 计算每个人的任务数量
-  const assigneeCounts: Record<string, number> = {}
+  const assigneeCounts: Record<string, number> = {};
 
   tasks.forEach((task) => {
-    const assigneeName = task.assignee?.name || "未分配"
-    assigneeCounts[assigneeName] = (assigneeCounts[assigneeName] || 0) + 1
-  })
+    const assigneeName = task.assignee?.name || '未分配';
+    assigneeCounts[assigneeName] = (assigneeCounts[assigneeName] || 0) + 1;
+  });
 
   // 转换为图表数据格式
   const chartData = Object.entries(assigneeCounts)
@@ -20,7 +29,7 @@ export function WorkloadChart({ tasks }: WorkloadChartProps) {
       assignee,
       count,
     }))
-    .sort((a, b) => b.count - a.count) // 按任务数量降序排序
+    .sort((a, b) => b.count - a.count); // 按任务数量降序排序
 
   return (
     <div className="w-full h-[300px]">
@@ -44,5 +53,5 @@ export function WorkloadChart({ tasks }: WorkloadChartProps) {
         </BarChart>
       </ResponsiveContainer>
     </div>
-  )
+  );
 }

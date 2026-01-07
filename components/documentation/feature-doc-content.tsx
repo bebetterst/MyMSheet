@@ -130,5 +130,5 @@ export function FeatureDocContent() {
         </div>
       </div>
     </div>
-  )
+  );
 }

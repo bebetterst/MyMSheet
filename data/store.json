@@ -32,12 +32,7 @@
         "width": 100,
         "type": "Select",
         "system": true,
-        "options": [
-          "待开始",
-          "进行中",
-          "已完成",
-          "已暂停"
-        ]
+        "options": ["待开始", "进行中", "已完成", "已暂停"]
       },
       {
         "id": "priority",
@@ -46,12 +41,7 @@
         "width": 100,
         "type": "Select",
         "system": true,
-        "options": [
-          "重要紧急",
-          "紧急不重要",
-          "重要不紧急",
-          "不重要不紧急"
-        ]
+        "options": ["重要紧急", "紧急不重要", "重要不紧急", "不重要不紧急"]
       },
       {
         "id": "startDate",
@@ -148,9 +138,7 @@
             "isDelayed": false,
             "completed": false,
             "priority": "重要紧急",
-            "dependencies": [
-              "1"
-            ],
+            "dependencies": ["1"],
             "customFields": {
               "custom_1767666555745_评分": {
                 "type": "Rating",
@@ -313,9 +301,7 @@
               }
             },
             "expectedEndDate": "2025/03/31",
-            "dependencies": [
-              "4"
-            ]
+            "dependencies": ["4"]
           }
         ]
       },

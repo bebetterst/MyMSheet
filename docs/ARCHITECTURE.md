@@ -16,17 +16,18 @@
 ## 技术栈
 
 ### 前端框架
+
 - **Next.js 15.2** - React 服务端渲染框架
   - App Router 路由系统
   - 服务端组件与客户端组件混合渲染
   - 自动代码分割和优化
-  
 - **React 19** - 用户界面库
   - 最新的并发特性
   - 自动批处理优化
   - Hooks API
 
 ### UI 组件库
+
 - **shadcn/ui** - 基于 Radix UI 的组件系统
   - 40+ 可定制化组件
   - 完整的无障碍支持
@@ -38,6 +39,7 @@
   - 响应式设计系统
 
 ### 状态管理
+
 - **Zustand** - 轻量级状态管理
   - 基于 Flux 架构
   - 中间件系统（persist）
@@ -45,6 +47,7 @@
   - 本地存储持久化
 
 ### 拖拽功能
+
 - **@dnd-kit** - 现代化拖拽库
   - 模块化设计
   - 高性能优化
@@ -52,21 +55,23 @@
   - 自定义传感器
 
 ### 数据可视化
+
 - **Recharts** - React 图表库
   - 声明式 API
   - 响应式设计
   - 丰富的图表类型
 
 ### 表单处理
+
 - **React Hook Form** - 表单状态管理
   - 高性能表单验证
   - 最小重渲染
-  
 - **Zod** - TypeScript 优先的模式验证
   - 类型推导
   - 运行时验证
 
 ### 开发工具
+
 - **TypeScript 5** - 静态类型检查
 - **ESLint** - 代码质量检查
 - **PostCSS** - CSS 处理工具
@@ -195,24 +200,24 @@
 
 ```typescript
 interface Task {
-  id: string                    // 唯一标识
-  description: string           // 任务描述
-  summary: string              // 任务总结
-  assignee: User               // 执行人
-  status: TaskStatus           // 进展状态
-  startDate: string            // 开始日期
-  expectedEndDate?: string     // 预计完成日期
-  actualEndDate?: string       // 实际完成日期
-  isDelayed: boolean          // 是否延期
-  completed: boolean          // 完成状态
-  priority: TaskPriority      // 优先级
-  customFields?: Record<string, CustomFieldValue>  // 自定义字段
+  id: string; // 唯一标识
+  description: string; // 任务描述
+  summary: string; // 任务总结
+  assignee: User; // 执行人
+  status: TaskStatus; // 进展状态
+  startDate: string; // 开始日期
+  expectedEndDate?: string; // 预计完成日期
+  actualEndDate?: string; // 实际完成日期
+  isDelayed: boolean; // 是否延期
+  completed: boolean; // 完成状态
+  priority: TaskPriority; // 优先级
+  customFields?: Record<string, CustomFieldValue>; // 自定义字段
 }
 
 interface PriorityGroup {
-  id: string                   // 分组ID
-  name: string                 // 分组名称
-  tasks: Task[]                // 任务列表
+  id: string; // 分组ID
+  name: string; // 分组名称
+  tasks: Task[]; // 任务列表
 }
 ```
 
@@ -251,6 +256,7 @@ interface PriorityGroup {
 #### 表格视图 (TaskManagementTable)
 
 **特性:**
+
 - 可拖拽排序任务
 - 可调整列宽
 - 可拖拽调整列顺序
@@ -260,32 +266,35 @@ interface PriorityGroup {
 - 响应式行高调整
 
 **实现细节:**
+
 ```typescript
 // 列宽调整实现
 const handleColumnResize = (fieldId: string, width: number) => {
-  updateFieldWidth(fieldId, width)
+  updateFieldWidth(fieldId, width);
   // 动态更新表格总宽度
-  calculateTableWidth()
-}
+  calculateTableWidth();
+};
 
 // 拖拽排序实现
 const handleDragEnd = (event: DragEndEvent) => {
-  const { active, over } = event
+  const { active, over } = event;
   // 找到源任务和目标位置
   // 支持跨优先级组拖拽
-  reorderTasks(sourceGroupId, activeIndex, overIndex, targetGroupId)
-}
+  reorderTasks(sourceGroupId, activeIndex, overIndex, targetGroupId);
+};
 ```
 
 #### 看板视图 (KanbanBoard)
 
 **特性:**
+
 - 按状态分栏展示
 - 卡片拖拽切换状态
 - 快速添加任务
 - 卡片悬浮预览
 
 **实现:**
+
 ```typescript
 // 使用 @dnd-kit 实现拖拽
 <DndContext
@@ -304,6 +313,7 @@ const handleDragEnd = (event: DragEndEvent) => {
 #### 人员分配视图 (AssignmentBoard)
 
 **特性:**
+
 - 按人员分组展示任务
 - 工作量可视化
 - 人员拖拽排序
@@ -315,22 +325,23 @@ const handleDragEnd = (event: DragEndEvent) => {
 
 ```typescript
 const defaultFields = [
-  { id: "description", name: "任务描述", type: "文本" },
-  { id: "summary", name: "任务情况总结", type: "文本" },
-  { id: "assignee", name: "任务执行人", type: "单选" },
-  { id: "status", name: "进展状态", type: "标签" },
-  { id: "priority", name: "优先级", type: "标签" },
-  { id: "startDate", name: "开始日期", type: "文本" },
-  { id: "expectedEndDate", name: "预计完成日期", type: "文本" },
-  { id: "isDelayed", name: "是否延期", type: "复选" },
-  { id: "actualEndDate", name: "实际完成日期", type: "文本" },
-  { id: "completed", name: "最终状态", type: "复选" },
-]
+  { id: 'description', name: '任务描述', type: '文本' },
+  { id: 'summary', name: '任务情况总结', type: '文本' },
+  { id: 'assignee', name: '任务执行人', type: '单选' },
+  { id: 'status', name: '进展状态', type: '标签' },
+  { id: 'priority', name: '优先级', type: '标签' },
+  { id: 'startDate', name: '开始日期', type: '文本' },
+  { id: 'expectedEndDate', name: '预计完成日期', type: '文本' },
+  { id: 'isDelayed', name: '是否延期', type: '复选' },
+  { id: 'actualEndDate', name: '实际完成日期', type: '文本' },
+  { id: 'completed', name: '最终状态', type: '复选' },
+];
 ```
 
 #### 自定义字段
 
 **支持的字段类型:**
+
 - 文本 (Text)
 - 数值 (Number)
 - 标签 (Tag)
@@ -340,29 +351,30 @@ const defaultFields = [
 - 图片 (Image)
 
 **实现:**
+
 ```typescript
 interface FieldConfig {
-  id: string           // 字段ID (custom_xxx)
-  name: string         // 字段名称
-  visible: boolean     // 是否可见
-  width: number        // 列宽
-  type: FieldType      // 字段类型
-  options?: string[]   // 选项（用于单选/复选）
+  id: string; // 字段ID (custom_xxx)
+  name: string; // 字段名称
+  visible: boolean; // 是否可见
+  width: number; // 列宽
+  type: FieldType; // 字段类型
+  options?: string[]; // 选项（用于单选/复选）
 }
 
 // 添加自定义字段
 const addField = (field: FieldConfig) => {
   // 更新字段配置
-  setVisibleFields([...visibleFields, field])
+  setVisibleFields([...visibleFields, field]);
   // 更新表头顺序
-  setHeaderOrder([...headerOrder, field.id])
-}
+  setHeaderOrder([...headerOrder, field.id]);
+};
 
 // 更新自定义字段值
 const updateTaskCustomField = (taskId, fieldId, value) => {
   // 更新任务的 customFields
-  task.customFields[fieldId] = { type, value }
-}
+  task.customFields[fieldId] = { type, value };
+};
 ```
 
 ### 4. 导入导出系统
@@ -371,35 +383,37 @@ const updateTaskCustomField = (taskId, fieldId, value) => {
 
 ```typescript
 const exportTaskData = () => {
-  const tasks = data.priorityGroups.flatMap(group => group.tasks)
-  const jsonData = JSON.stringify(tasks, null, 2)
-  const blob = new Blob([jsonData], { type: "application/json" })
+  const tasks = data.priorityGroups.flatMap((group) => group.tasks);
+  const jsonData = JSON.stringify(tasks, null, 2);
+  const blob = new Blob([jsonData], { type: 'application/json' });
   // 下载文件
-  downloadFile(blob, `tasks-export-${date}.json`)
-}
+  downloadFile(blob, `tasks-export-${date}.json`);
+};
 ```
 
 #### 导入功能
 
 **支持格式:**
+
 - JSON 格式任务数据
 - 自动验证数据结构
 - 批量导入任务
 - 错误提示
 
 **实现:**
+
 ```typescript
 const importTasks = (file: File) => {
-  const reader = new FileReader()
+  const reader = new FileReader();
   reader.onload = (e) => {
-    const tasks = JSON.parse(e.target.result)
+    const tasks = JSON.parse(e.target.result);
     // 验证数据
-    validateTasks(tasks)
+    validateTasks(tasks);
     // 批量添加
-    addMultipleTasks(tasks)
-  }
-  reader.readAsText(file)
-}
+    addMultipleTasks(tasks);
+  };
+  reader.readAsText(file);
+};
 ```
 
 ## 数据流设计
@@ -442,7 +456,7 @@ const updateTask = (taskId, updates) => {
 
 ```typescript
 // 组件订阅 Store
-const { data, updateTask } = useTaskStore()
+const { data, updateTask } = useTaskStore();
 
 // Zustand 自动追踪依赖
 // 只有使用到的状态变化时才重新渲染
@@ -455,80 +469,81 @@ const { data, updateTask } = useTaskStore()
 ```typescript
 interface TaskStore {
   // === 数据状态 ===
-  data: TaskData                    // 原始数据
-  filteredData: TaskData            // 过滤后的数据
-  searchQuery: string               // 搜索关键词
-  
+  data: TaskData; // 原始数据
+  filteredData: TaskData; // 过滤后的数据
+  searchQuery: string; // 搜索关键词
+
   // === 视图配置 ===
   viewConfig: {
-    rowHeight: RowHeight           // 行高
-    editMode: boolean              // 编辑模式
-    expandedGroups: Record<string, boolean>    // 分组展开状态
-    expandedTasks: Record<string, boolean>     // 任务展开状态
-    headerDraggable: boolean       // 表头可拖拽
-  }
-  
+    rowHeight: RowHeight; // 行高
+    editMode: boolean; // 编辑模式
+    expandedGroups: Record<string, boolean>; // 分组展开状态
+    expandedTasks: Record<string, boolean>; // 任务展开状态
+    headerDraggable: boolean; // 表头可拖拽
+  };
+
   // === 筛选配置 ===
   filterConfig: {
-    status: string | null          // 状态筛选
-    priority: string | null        // 优先级筛选
-    assignee: string | null        // 执行人筛选
-    dateRange: {                   // 日期范围
-      start?: string
-      end?: string
-    } | null
-    isActive: boolean              // 是否启用筛选
-  }
-  
+    status: string | null; // 状态筛选
+    priority: string | null; // 优先级筛选
+    assignee: string | null; // 执行人筛选
+    dateRange: {
+      // 日期范围
+      start?: string;
+      end?: string;
+    } | null;
+    isActive: boolean; // 是否启用筛选
+  };
+
   // === 排序配置 ===
   sortConfig: {
-    field: string | null           // 排序字段
-    direction: "asc" | "desc"     // 排序方向
-    isActive: boolean              // 是否启用排序
-  }
-  
+    field: string | null; // 排序字段
+    direction: 'asc' | 'desc'; // 排序方向
+    isActive: boolean; // 是否启用排序
+  };
+
   // === 分组配置 ===
-  groupBy: string                  // 分组字段
-  
+  groupBy: string; // 分组字段
+
   // === 字段配置 ===
-  visibleFields: FieldConfig[]     // 可见字段列表
-  headerOrder: string[]            // 表头顺序
-  
+  visibleFields: FieldConfig[]; // 可见字段列表
+  headerOrder: string[]; // 表头顺序
+
   // === 用户配置 ===
-  userOrder: string[]              // 用户顺序
-  
+  userOrder: string[]; // 用户顺序
+
   // === Actions ===
   // 数据操作
-  addTask: (task: Task) => void
-  updateTask: (taskId: string, updates: Partial<Task>) => void
-  addMultipleTasks: (tasks: Task[]) => void
-  moveTask: (taskId: string, newStatus: TaskStatus) => void
-  reorderTasks: (groupId, oldIndex, newIndex, targetGroupId?) => void
-  
+  addTask: (task: Task) => void;
+  updateTask: (taskId: string, updates: Partial<Task>) => void;
+  addMultipleTasks: (tasks: Task[]) => void;
+  moveTask: (taskId: string, newStatus: TaskStatus) => void;
+  reorderTasks: (groupId, oldIndex, newIndex, targetGroupId?) => void;
+
   // 用户操作
-  addUser: (user: User) => void
-  deleteUser: (userId: string) => void
-  reorderUsers: (oldIndex, newIndex) => void
-  
+  addUser: (user: User) => void;
+  deleteUser: (userId: string) => void;
+  reorderUsers: (oldIndex, newIndex) => void;
+
   // 字段操作
-  addField: (field: FieldConfig) => void
-  updateFieldWidth: (fieldId: string, width: number) => void
-  updateFieldType: (fieldId: string, type: FieldType) => void
-  updateTaskCustomField: (taskId, fieldId, value) => void
-  
+  addField: (field: FieldConfig) => void;
+  updateFieldWidth: (fieldId: string, width: number) => void;
+  updateFieldType: (fieldId: string, type: FieldType) => void;
+  updateTaskCustomField: (taskId, fieldId, value) => void;
+
   // 配置操作
-  updateViewConfig: (updates: Partial<ViewConfig>) => void
-  setFilterConfig: (config: FilterConfig) => void
-  setSortConfig: (config: SortConfig) => void
-  setGroupBy: (field: string) => void
-  setVisibleFields: (fields: FieldConfig[]) => void
-  setHeaderOrder: (order: string[]) => void
-  reorderHeaders: (oldIndex, newIndex) => void
-  
+  updateViewConfig: (updates: Partial<ViewConfig>) => void;
+  setFilterConfig: (config: FilterConfig) => void;
+  setSortConfig: (config: SortConfig) => void;
+  setGroupBy: (field: string) => void;
+  setVisibleFields: (fields: FieldConfig[]) => void;
+  setHeaderOrder: (order: string[]) => void;
+  reorderHeaders: (oldIndex, newIndex) => void;
+
   // 数据处理
-  applyFilters: () => void
-  applySorting: () => void
-  regroupData: () => TaskData
+  applyFilters: () => void;
+  applySorting: () => void;
+  regroupData: () => TaskData;
 }
 ```
 
@@ -541,7 +556,7 @@ persist(
     // store 实现
   }),
   {
-    name: "task-management-storage",
+    name: 'task-management-storage',
     partialize: (state) => ({
       data: state.data,
       viewConfig: state.viewConfig,
@@ -552,11 +567,12 @@ persist(
       userOrder: state.userOrder,
       headerOrder: state.headerOrder,
     }),
-  }
-)
+  },
+);
 ```
 
 **持久化的数据:**
+
 - 任务数据
 - 视图配置
 - 筛选/排序/分组配置
@@ -564,6 +580,7 @@ persist(
 - 用户顺序
 
 **不持久化的数据:**
+
 - 搜索关键词
 - 过滤后的数据（计算得出）
 
@@ -608,7 +625,7 @@ const SortableItem = ({ task }) => {
     transition,
     isDragging
   } = useSortable({ id: task.id })
-  
+
   return (
     <div
       ref={setNodeRef}
@@ -628,36 +645,36 @@ const SortableItem = ({ task }) => {
 
 ```typescript
 const handleDragEnd = (event: DragEndEvent) => {
-  const { active, over } = event
-  
+  const { active, over } = event;
+
   // 查找源任务和目标位置
-  const sourceGroup = findGroup(active.id)
-  const targetGroup = findGroup(over.id)
-  const sourceIndex = findIndex(active.id)
-  const targetIndex = findIndex(over.id)
-  
+  const sourceGroup = findGroup(active.id);
+  const targetGroup = findGroup(over.id);
+  const sourceIndex = findIndex(active.id);
+  const targetIndex = findIndex(over.id);
+
   // 支持跨组拖拽
   if (sourceGroup !== targetGroup) {
     // 更新任务优先级
-    updateTaskPriority(active.id, targetGroup.id)
+    updateTaskPriority(active.id, targetGroup.id);
   }
-  
+
   // 重新排序
-  reorderTasks(sourceGroup.id, sourceIndex, targetIndex, targetGroup.id)
-}
+  reorderTasks(sourceGroup.id, sourceIndex, targetIndex, targetGroup.id);
+};
 ```
 
 #### 2. 表头拖拽调整顺序
 
 ```typescript
 const handleHeaderDragEnd = (event: DragEndEvent) => {
-  const { active, over } = event
-  const oldIndex = headerOrder.indexOf(active.id)
-  const newIndex = headerOrder.indexOf(over.id)
-  
+  const { active, over } = event;
+  const oldIndex = headerOrder.indexOf(active.id);
+  const newIndex = headerOrder.indexOf(over.id);
+
   // 调整表头顺序
-  reorderHeaders(oldIndex, newIndex)
-}
+  reorderHeaders(oldIndex, newIndex);
+};
 ```
 
 #### 3. 看板卡片拖拽
@@ -666,7 +683,7 @@ const handleHeaderDragEnd = (event: DragEndEvent) => {
 // 可放置容器
 const DroppableContainer = ({ status, children }) => {
   const { setNodeRef } = useDroppable({ id: status })
-  
+
   return (
     <div ref={setNodeRef}>
       {children}
@@ -689,22 +706,28 @@ const handleKanbanDragEnd = (event: DragEndEvent) => {
 
 ```typescript
 // 使用 React.memo 避免不必要的重渲染
-const TaskRow = React.memo(({ task, onUpdate }) => {
-  // 组件实现
-}, (prevProps, nextProps) => {
-  // 自定义比较逻辑
-  return prevProps.task.id === nextProps.task.id
-})
+const TaskRow = React.memo(
+  ({ task, onUpdate }) => {
+    // 组件实现
+  },
+  (prevProps, nextProps) => {
+    // 自定义比较逻辑
+    return prevProps.task.id === nextProps.task.id;
+  },
+);
 
 // 使用 useCallback 缓存函数
-const handleTaskUpdate = useCallback((taskId, updates) => {
-  updateTask(taskId, updates)
-}, [updateTask])
+const handleTaskUpdate = useCallback(
+  (taskId, updates) => {
+    updateTask(taskId, updates);
+  },
+  [updateTask],
+);
 
 // 使用 useMemo 缓存计算结果
 const sortedTasks = useMemo(() => {
-  return tasks.sort(compareFn)
-}, [tasks, sortConfig])
+  return tasks.sort(compareFn);
+}, [tasks, sortConfig]);
 ```
 
 #### 虚拟列表（待实现）
@@ -716,13 +739,13 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 
 const VirtualTaskList = ({ tasks }) => {
   const parentRef = useRef()
-  
+
   const rowVirtualizer = useVirtualizer({
     count: tasks.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 50,
   })
-  
+
   return (
     <div ref={parentRef}>
       {rowVirtualizer.getVirtualItems().map(virtualRow => (
@@ -737,16 +760,13 @@ const VirtualTaskList = ({ tasks }) => {
 
 ```typescript
 // 选择性订阅，避免不必要的重渲染
-const tasks = useTaskStore(state => state.data.tasks)  // ✓ 只订阅 tasks
-const store = useTaskStore()  // ✗ 订阅整个 store
+const tasks = useTaskStore((state) => state.data.tasks); // ✓ 只订阅 tasks
+const store = useTaskStore(); // ✗ 订阅整个 store
 
 // 使用 shallow 比较
-import { shallow } from 'zustand/shallow'
+import { shallow } from 'zustand/shallow';
 
-const [tasks, updateTask] = useTaskStore(
-  state => [state.data.tasks, state.updateTask],
-  shallow
-)
+const [tasks, updateTask] = useTaskStore((state) => [state.data.tasks, state.updateTask], shallow);
 ```
 
 ### 3. 拖拽性能优化
@@ -756,23 +776,23 @@ const [tasks, updateTask] = useTaskStore(
 const sensors = useSensors(
   useSensor(PointerSensor, {
     activationConstraint: {
-      distance: 8,  // 需要拖拽 8px 才触发
-    }
-  })
-)
+      distance: 8, // 需要拖拽 8px 才触发
+    },
+  }),
+);
 
 // 拖拽时降低渲染频率
-const [isDragging, setIsDragging] = useState(false)
+const [isDragging, setIsDragging] = useState(false);
 
 const handleDragStart = () => {
-  setIsDragging(true)
+  setIsDragging(true);
   // 禁用部分动画和效果
-}
+};
 
 const handleDragEnd = () => {
-  setIsDragging(false)
+  setIsDragging(false);
   // 恢复动画和效果
-}
+};
 ```
 
 ### 4. 列宽调整优化
@@ -781,44 +801,41 @@ const handleDragEnd = () => {
 // 使用 requestAnimationFrame 优化调整性能
 const handleMouseMove = (e) => {
   requestAnimationFrame(() => {
-    const newWidth = calculateWidth(e)
-    updateColumnWidth(newWidth)
-  })
-}
+    const newWidth = calculateWidth(e);
+    updateColumnWidth(newWidth);
+  });
+};
 
 // 使用 CSS 变量动态更新宽度
 const updateColumnWidth = (fieldId, width) => {
-  document.documentElement.style.setProperty(
-    `--column-${fieldId}-width`,
-    `${width}px`
-  )
-}
+  document.documentElement.style.setProperty(`--column-${fieldId}-width`, `${width}px`);
+};
 ```
 
 ### 5. 数据处理优化
 
 ```typescript
 // 使用 JSON.parse(JSON.stringify()) 深拷贝（简单场景）
-const newData = JSON.parse(JSON.stringify(state.data))
+const newData = JSON.parse(JSON.stringify(state.data));
 
 // 大数据量时使用 immer（待引入）
-import { produce } from 'immer'
+import { produce } from 'immer';
 
 const updateTask = produce((draft, taskId, updates) => {
-  const task = findTaskInDraft(draft, taskId)
-  Object.assign(task, updates)
-})
+  const task = findTaskInDraft(draft, taskId);
+  Object.assign(task, updates);
+});
 
 // 批量更新优化
 const updateMultipleTasks = (updates) => {
   set((state) => {
-    const newData = { ...state.data }
+    const newData = { ...state.data };
     updates.forEach(({ taskId, updates }) => {
-      updateTaskInData(newData, taskId, updates)
-    })
-    return { data: newData }
-  })
-}
+      updateTaskInData(newData, taskId, updates);
+    });
+    return { data: newData };
+  });
+};
 ```
 
 ### 6. Next.js 优化
@@ -828,17 +845,17 @@ const updateMultipleTasks = (updates) => {
 const nextConfig = {
   // 图片优化
   images: {
-    unoptimized: true,  // 根据需求启用/禁用
+    unoptimized: true, // 根据需求启用/禁用
   },
-  
+
   // 生产构建优化
   swcMinify: true,
-  
+
   // 代码分割
   experimental: {
     optimizePackageImports: ['@radix-ui/react-*'],
-  }
-}
+  },
+};
 ```
 
 ## 开发规范
@@ -873,22 +890,22 @@ app/
 
 ```typescript
 // 组件：PascalCase
-const TaskManagementTable = () => {}
+const TaskManagementTable = () => {};
 
 // 函数/变量：camelCase
-const handleTaskUpdate = () => {}
-const isActive = true
+const handleTaskUpdate = () => {};
+const isActive = true;
 
 // 常量：UPPER_SNAKE_CASE
-const MAX_TASKS = 100
+const MAX_TASKS = 100;
 
 // 类型/接口：PascalCase
 interface Task {}
-type TaskStatus = "待开始" | "进行中"
+type TaskStatus = '待开始' | '进行中';
 
 // 文件名：kebab-case
-task-management-table.tsx
-use-local-storage.ts
+task - management - table.tsx;
+use - local - storage.ts;
 ```
 
 ### TypeScript 使用
@@ -896,26 +913,23 @@ use-local-storage.ts
 ```typescript
 // 严格类型定义
 interface Task {
-  id: string
+  id: string;
   // ...其他字段
 }
 
 // 使用类型推导
-const tasks = useTaskStore(state => state.data.tasks)  // 自动推导为 Task[]
+const tasks = useTaskStore((state) => state.data.tasks); // 自动推导为 Task[]
 
 // 泛型使用
-const updateField = <T extends FieldType>(
-  fieldId: string,
-  value: FieldValueMap[T]
-) => {}
+const updateField = <T extends FieldType>(fieldId: string, value: FieldValueMap[T]) => {};
 
 // 避免 any，使用 unknown
 const parseData = (data: unknown) => {
   if (isTask(data)) {
     // 类型守卫
-    return data
+    return data;
   }
-}
+};
 ```
 
 ### 组件编写规范
@@ -938,12 +952,12 @@ export const TaskRow: React.FC<TaskRowProps> = ({ task, onUpdate }) => {
   // 3. Hooks（固定顺序）
   const [isEditing, setIsEditing] = useState(false)
   const updateTask = useTaskStore(state => state.updateTask)
-  
+
   // 4. 事件处理器
   const handleClick = useCallback(() => {
     setIsEditing(true)
   }, [])
-  
+
   // 5. 渲染
   return (
     <div onClick={handleClick}>
@@ -981,18 +995,20 @@ set((state) => ({
   ...state,
   data: {
     ...state.data,
-    tasks: [...state.data.tasks, newTask]
-  }
-}))
+    tasks: [...state.data.tasks, newTask],
+  },
+}));
 
 // 复杂状态更新使用 produce（immer）
-set(produce((draft) => {
-  draft.data.tasks.push(newTask)
-}))
+set(
+  produce((draft) => {
+    draft.data.tasks.push(newTask);
+  }),
+);
 
 // 避免直接修改状态
-state.data.tasks.push(newTask)  // ✗ 错误
-set({ data: { ...state.data, tasks: [...tasks, newTask] }})  // ✓ 正确
+state.data.tasks.push(newTask); // ✗ 错误
+set({ data: { ...state.data, tasks: [...tasks, newTask] } }); // ✓ 正确
 ```
 
 ### 错误处理
@@ -1001,27 +1017,22 @@ set({ data: { ...state.data, tasks: [...tasks, newTask] }})  // ✓ 正确
 // 使用 try-catch 处理异步操作
 const importTasks = async (file: File) => {
   try {
-    const data = await parseFile(file)
-    addMultipleTasks(data)
-    toast({ title: "导入成功" })
+    const data = await parseFile(file);
+    addMultipleTasks(data);
+    toast({ title: '导入成功' });
   } catch (error) {
     toast({
-      title: "导入失败",
+      title: '导入失败',
       description: error.message,
-      variant: "destructive"
-    })
+      variant: 'destructive',
+    });
   }
-}
+};
 
 // 类型守卫
 const isTask = (data: unknown): data is Task => {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    'id' in data &&
-    'description' in data
-  )
-}
+  return typeof data === 'object' && data !== null && 'id' in data && 'description' in data;
+};
 ```
 
 ### 性能注意事项
@@ -1086,6 +1097,7 @@ const tasks = useTaskStore(state => state.tasks)
 pxcharts 是一个技术先进、架构清晰的现代化多维表格应用。通过合理的分层设计、强大的状态管理、流畅的拖拽交互和细致的性能优化，为用户提供了出色的使用体验。
 
 **核心优势:**
+
 - 🏗️ 清晰的模块化架构
 - ⚡ 高性能的状态管理
 - 🎨 优雅的 UI 设计
